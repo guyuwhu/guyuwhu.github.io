@@ -4,7 +4,7 @@
  <title>谷雨</title>
  <link href="http://guyuwhu.github.io//atom.xml" rel="self"/>
  <link href="http://guyuwhu.github.io//"/>
- <updated>2016-12-10T23:12:30+08:00</updated>
+ <updated>2016-12-10T23:23:00+08:00</updated>
  <id>http://guyuwhu.github.io/</id>
  <author>
    <name>谷雨</name>
@@ -24,6 +24,286 @@
   &lt;li&gt;学号：2014xxxxxxxxx&lt;/li&gt;
   &lt;li&gt;……&lt;/li&gt;
 &lt;/ul&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>一些关于“新子学”的想法</title>
+   <link href="http://guyuwhu.github.io//2016/12/07/xinzixue/"/>
+   <updated>2016-12-07T00:00:00+08:00</updated>
+   <id>http://guyuwhu.github.io//2016/12/07/xinzixue</id>
+   <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;“新子学”是学界于2012年提出的一个学术概念，出自2012年10月22日《光明日报》刊发的方勇&lt;a href=&quot;http://news.ecnu.edu.cn/17/38/c1835a71480/page.htm&quot;&gt;《“新子学”构想》&lt;/a&gt;一文。这个概念意味着对传统的“诸子之学”（子学）进行发展与革新，使其成为一种适应新时代的学术门类，在当代思想文化的建设中发挥积极的作用。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;在我看到的各式各样的资料之中，“新子学”的概念得到了学术界、教育界、新闻界等的广泛响应和大力支持。不得不说，“新子学”这个概念在继承传统的同时很有创新性。&lt;/p&gt;
+
+&lt;p&gt;在我看来，“新子学”具有继往开来的重要意义。方勇教授自己提出：“新子学是子学自身发展的必然产物”。新子学是在包括传统子学的传统文化基础之上发展起来的。然而拿它与传统的子学和经学作比较，就会发现：新子学比经学更为多元开放，而比传统子学更为系统（因为这本身就是现代学术的特点）。新子学的第一项任务就是对它的源头进行深入的研究。以上即是继往。新子学的更重要的意义在于创新，否则就跟普通的子学研究没什么两样。我时常感受到，现代学术的一大优点就在于传播无比迅速，也为知识的快速发展奠定了基础。新子学相比于传统子学，就具有着不可比拟的先天优势。研究者们通过发表论文，召开会议的形式，一方面对已有的成果进行归纳总结，另一方面就新的想法进行讨论，交换意见。这样的学术氛围更有利于新子学的水平进步，层次不断向上提高。&lt;/p&gt;
+
+&lt;p&gt;同时，新子学还具有的一大优势就是国际化。文化要走向国际，那么这个文化必须经过高度的民族化。中华民族的文化是受到世界范围的尊重的。我们对自己的文化要热爱，对外来文化要理解。只要有清醒的觉悟，不全盘“西学中用”，外来文化就不是挑战，而是可以开拓自己思路，完善自己学说的重大机遇。另一方面，在认识学习外来文化的同时，也可以着眼于将新子学推向世界。中华文化具有充分的独特性，我们始终需要保持高度的自信。&lt;/p&gt;
+
+&lt;p&gt;以上是我对“新子学”的一点想法。&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>初试 SchemaSpy</title>
+   <link href="http://guyuwhu.github.io//2016/12/01/SchemaSpy/"/>
+   <updated>2016-12-01T00:00:00+08:00</updated>
+   <id>http://guyuwhu.github.io//2016/12/01/SchemaSpy</id>
+   <content type="html">&lt;p&gt;SchemaSpy 是一个数据库图形化的工具，感觉还挺有意思。用它的初衷是画数据库实验的 ER-model 图。&lt;/p&gt;
+
+&lt;p&gt;原网址: &lt;a href=&quot;http://schemaspy.sourceforge.net/&quot;&gt;SchemaSpy-没错，说的就是我&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;我在这里使用的是 postgres 数据库，好在属于 SchemaSpy 的支持范围内。&lt;/p&gt;
+
+&lt;p&gt;说实话，这网站做的有点难看，我找了半天没找到下载在哪里，最好拿浏览器查找一下 “download”。下好 schemaSpy_5.0.0.jar之后:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;会报错，看报错原因，是因为 postgres 需要指明端口。&lt;/p&gt;
+
+&lt;p&gt;再来。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads -host localhost:5432
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;继续报错。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Failed to query Graphviz version information
+  with: dot -V
+  java.io.IOException: Cannot run program &quot;dot&quot;: error=2, No such file or directory
+Using database properties:
+  [schemaSpy_5.0.0.jar]/net/sourceforge/schemaspy/dbTypes/pgsql.properties
+java.lang.ClassNotFoundException: org.postgresql.Driver
+
+Failed to load driver 'org.postgresql.Driver'
+This entry does not point to a valid file/directory: [/whereever/postgresql-8.0-312.jdbc3.jar]
+
+Use the -dp option to specify the location of the database
+drivers for your database (usually in a .jar or .zip/.Z).
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;原来还没有指定驱动路径。&lt;/p&gt;
+
+&lt;p&gt;到  &lt;a href=&quot;https://jdbc.postgresql.org/download.html#others&quot;&gt;Postgres JDBC官网&lt;/a&gt; 下一个驱动，在命令参数 -dp 后面加上驱动的地址。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads -host localhost:5432 -dp ~/Downloads/postgresql-9.4.1208.jre6.jar
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;还是没有得到我们想要的结果，看看报错信息。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Using database properties:
+  [schemaSpy_5.0.0.jar]/net/sourceforge/schemaspy/dbTypes/pgsql.properties
+Gathering schema details...
+
+No tables or views were found in schema 'Lucius'.
+The schema does not exist in the database.
+Make sure that you specify a valid schema with the -s option and that
+  the user specified (Lucius) can read from the schema.
+Note that schema names are usually case sensitive.
+
+3 schemas exist in this database.
+Some of these &quot;schemas&quot; may be users or system schemas.
+
+information_schema pg_catalog public
+These schemas contain tables/views that user 'Lucius' can see:
+
+ information_schema pg_catalog public%
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;schema-&quot;&gt;Schema 是什么？&lt;/h2&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;img src=&quot;/public/img/schemaspy/q.jpg&quot; alt=&quot;question&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;数据库中的Schema，为数据库对象的集合，一个用户一般对应一个schema。&lt;/p&gt;
+
+  &lt;p&gt;官方定义如下：
+A schema is a collection of database objects (used by a user.).&lt;/p&gt;
+
+  &lt;p&gt;schema objects are the logical structures that directly refer to the database’s data.&lt;/p&gt;
+
+  &lt;p&gt;A user is a name defined in the database that can connect to and access objects.&lt;/p&gt;
+
+  &lt;p&gt;schemas and users help database administrators manage database security.&lt;/p&gt;
+
+  &lt;p&gt;从定义中我们可以看出schema为数据库对象的集合，为了区分各个集合，我们需要给这个集合起个名字，这些名字就是我们在企业管理器的方案下看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个schema，schema里面包含了各种对象如tables views sequences stored procedures synonyms indexes clusters and database links。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;所以这个点我们应该把 schema 改成 public，放在 -s 参数后面，而不是 user 默认的 Lucius。&lt;/p&gt;
+
+&lt;p&gt;对了，需要画 ER—model diagram 的话需要安装 &lt;strong&gt;graphviz&lt;/strong&gt;。
+mac 用户直接&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ brew install graphviz 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;现在配置就搞定了。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads -host localhost:5432 -dp ~/Downloads/postgresql-9.4.1208.jre6.jar -s public
+Using database properties:
+  [schemaSpy_5.0.0.jar]/net/sourceforge/schemaspy/dbTypes/pgsql.properties
+Gathering schema details.....................(1sec)
+Writing/graphing summary............(0sec)
+Writing/diagramming details..................(2sec)
+Wrote relationship details of 18 tables/views to directory 'Downloads' in 4 seconds.
+View the results by opening Downloads/index.html
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;看看效果。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/public/img/schemaspy/1.png&quot; alt=&quot;colomn&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/public/img/schemaspy/2.png&quot; alt=&quot;table&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/public/img/schemaspy/3.png&quot; alt=&quot;ER&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;还不错吧，更多的功能以后慢慢探索。&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>凯文杜兰特 做出了最错误的选择</title>
+   <link href="http://guyuwhu.github.io//2016/07/05/kd-free-agent/"/>
+   <updated>2016-07-05T00:00:00+08:00</updated>
+   <id>http://guyuwhu.github.io//2016/07/05/kd-free-agent</id>
+   <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;北京时间2016年7月4日晚上，凯文杜兰特在 &lt;em&gt;球星看台&lt;/em&gt; 上撰文 &lt;a href=&quot;http://www.theplayerstribune.com/kevin-durant-nba-free-agency-announcement/&quot; target=&quot;_blank&quot;&gt; &lt;strong&gt;“My Next Chapter”&lt;/strong&gt; &lt;/a&gt; ，宣布他将在2016-17赛季加盟金州勇士队。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;section&quot;&gt;错误的决定&lt;/h1&gt;
+&lt;hr /&gt;
+
+&lt;p&gt;我知道大多数人也是这么想的，我还是要强调一次：&lt;strong&gt;凯文杜兰特做出了最错误的选择&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;我不敢相信我刷了整晚推特却得到了这样的结果。当我看到杜兰特现身 Logan 机场的传闻的时候，我还激动地告诉我的朋友们：杜兰特要来波士顿了。然而现在，我的愤怒不是来自杜兰特的“爽约”，而是来自这种本身令人作呕的举动。我现在不是站在一个凯尔特人球迷的立场上谈问题，现在我只是一个关注 NBA 的普通球迷：“凯文杜兰特选择任意一只球队我都不会有意见，除了金州勇士。”&lt;/p&gt;
+
+&lt;p&gt;相信我，作为一名专业的“詹姆斯批评家”，我很不想说这些，但是事实如此：今天是勒布朗詹姆斯扬眉吐气的一天。作为主动抱团的开创者，在屡次单打独斗败给凯尔特人之后，詹姆斯选择了与兄弟们一起抱团求胜。多年以来，联盟各界对此行为表示不齿。然而今天，凯文杜兰特重新定义了”不义之举“——联盟 MVP、得分王 主动投靠 刚刚在西部决赛中战胜自己的 73胜的 历史级球队。&lt;/p&gt;
+
+&lt;p&gt;打一个简单的比方。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;诸葛亮对刘备说：“我们打不过曹操，要不我们去找孙权抱团吧。”这是詹姆斯。&lt;/li&gt;
+  &lt;li&gt;诸葛亮对刘备说：“我们打不过曹操，我去投靠曹丞相了，你随意。“这是杜兰特。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;杜兰特加盟勇士，让下赛季 NBA 冠军的归属基本失去了悬念。&lt;/p&gt;
+
+&lt;p&gt;竞技体育依赖于商业联盟而存在，所以球迷与球星对于很多事情的看法也有不同。置身事外的时候，杜兰特抱着和我们一样的想法，即是每个球队应该保持自身的竞争性，不要抱团。&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Now everybody wanna play for the heat and the Lakers? Let&amp;#39;s go back to being competitive and going at these peoples!&lt;/p&gt;&amp;mdash; Kevin Durant (@KDTrey5) &lt;a href=&quot;https://twitter.com/KDTrey5/status/18688294600&quot;&gt;July 16, 2010&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;看到了吗？当年杜兰特也曾将詹姆斯拿出来批判一番。&lt;/p&gt;
+
+&lt;p&gt;但是当自己面临选择的时候……想不到你杜兰特浓眉大眼的也叛变革命了？&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Kevin Durant, via The Players Tribune, says he will sign with Golden State.&lt;/p&gt;&amp;mdash; Chris Mannix (@ChrisMannixYS) &lt;a href=&quot;https://twitter.com/ChrisMannixYS/status/749991096332193793&quot;&gt;July 4, 2016&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;缘何？时代的改变？&lt;/h1&gt;
+&lt;hr /&gt;
+
+&lt;p&gt;我认为所谓 &lt;em&gt;历史评价&lt;/em&gt; 一定程度上扭曲了球员的心理。&lt;/p&gt;
+
+&lt;p&gt;评论家们总是不厌其烦地讨论球员的历史地位，而评价一个球员很重要的因素就是总冠军。卡尔马龙很伟大，查尔斯巴克利很伟大，雷吉米勒很伟大，斯托克顿很伟大，克里斯韦伯很伟大，这些事实球迷们、专家们都一清二楚。可是总有人能跳出来，用”可是他们没有总冠军“来否定球员们的伟大。这样的举动很残酷，很刻薄，但是也能解释为何现在的球员为何顶着巨大的舆论压力，也要拿到一个含金量不够的总冠军。&lt;/p&gt;
+
+&lt;p&gt;【7月7日更新：雷吉米勒在 bleacher report 上撰文 &lt;a href=&quot;http://bleacherreport.com/articles/2650244-reggie-miller-kevin-durant-traded-a-sacred-legacy-for-cheap-jewelry?night=1&quot;&gt;Kevin Durant Traded a Sacred Legacy for Cheap Jewelry | 杜兰特用神圣的生涯评价去交换廉价珠宝&lt;/a&gt; ，基于同样的观点对杜兰特的举动进行了抨击。】&lt;/p&gt;
+
+&lt;p&gt;深层次来说，有两个原因。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;对自身的不自信&lt;/h2&gt;
+&lt;hr /&gt;
+&lt;p&gt;没人敢说杜兰特不是当代最有实力的篮球运动员之一，事实上他也触摸过总冠军的边缘，并且去年险些再进总决赛并改写历史。就在这么一个应该乘胜追击的关头，杜兰特抛弃了雷霆。&lt;/p&gt;
+
+&lt;p&gt;西部决赛： 雷霆 3-1 勇士。在被外界一致看低的情况下，把73胜不可一世的勇士逼到如此绝境，杜兰特应该对自己感到充分自信。&lt;/p&gt;
+
+&lt;p&gt;西部决赛： 雷霆 3—2 勇士。@ Chesapeake Arena，杜兰特离将卫冕冠军淘汰只有四分钟的距离。&lt;/p&gt;
+
+&lt;p&gt;尽管最终结果是杜兰特饮恨，但是他从这个系列赛（甚至前一个系列赛）中应该收获喜悦而不是悲伤。是的，没人看好他们越过马刺这座大山，雷霆甚至在第一场输给马刺40多分，但是他们还是挺了过来，得到了与勇士一决高下的机会。杜兰特才27岁，比斯蒂芬库里还要年轻。应该寻求自我提升的杜兰特，对自己可能失去了信心。&lt;strong&gt;坚定的人不会选择逃避，自我怀疑的人才会尝试掩盖自己的懦弱&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;保底心理—-害怕“失败”&lt;/h2&gt;
+&lt;hr /&gt;
+&lt;p&gt;短期的舆论压力如期而至，而杜兰特想要避免的可能是长期的历史级别的批评。&lt;/p&gt;
+
+&lt;p&gt;让我们估算一下，杜兰特有20%的机会在雷霆获得（真正的）成功，95%的机会在勇士获得（所谓的）成功，杜兰特做出这样的选择很有可能基于这样的心理——拿一个冠军作为保底。&lt;/p&gt;
+
+&lt;p&gt;说白了，拿不到冠军就是失败。起码某些人是这么想的，而很多人不是。就算是金州勇士的球迷，在兴奋之余，也许也会对杜兰特的举动感到疑惑吧。内心深处，你们也不会赞成这样的举动。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section-4&quot;&gt;怎样的选择才是正确的呢？&lt;/h1&gt;
+&lt;hr /&gt;
+
+&lt;p&gt;依我拙见：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;第一档：雷霆&lt;/p&gt;
+
+    &lt;p&gt;这个没什么多说的。俄克拉荷马就是杜兰特的家，拉塞尔维斯布鲁克就是杜兰特的亲兄弟。他们有实力，应该继续一起冲击总冠军。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;第二档：凯尔特人&lt;/p&gt;
+
+    &lt;p&gt;传统豪门，教练优秀，球队处于上升期，去了可以做领袖。球迷水平就不说了，大家都懂。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;第三档：马刺、快船&lt;/p&gt;
+
+    &lt;p&gt;事实上这俩队就是弱化版的勇士。&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;快船的问题在于替补太坑。雷霆本来就替补坑，然后又跑去一个替补坑的球队，这显然不合理。何况这个球队还自带西决诅咒。&lt;/li&gt;
+      &lt;li&gt;马刺的问题在于球队老化。邓肯马上要退役了，暂时没找到接班的。并且杜兰特和莱昂纳德位置重叠。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;第四档：热火&lt;/p&gt;
+
+    &lt;p&gt;我其实很想给热火一个负分滚粗的，但是为了迎合本文观点，我还是放在倒数第二个好了。至今还没搞懂热火是怎么掺和进来的。可能帕特莱利得以会见杜兰特的原因就是 他是帕特莱利 吧。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;第五档：勇士&lt;/p&gt;
+
+    &lt;p&gt;这个很明显了，性质太恶劣。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;&amp;quot;Kevin Durant is trying to cheat his way into a championship.&amp;quot;&lt;br /&gt;&lt;br /&gt;- Charles Barkley &lt;a href=&quot;https://t.co/vf6hUC1TI6&quot;&gt;pic.twitter.com/vf6hUC1TI6&lt;/a&gt;&lt;/p&gt;&amp;mdash; Mike &amp;amp; Mike (@MikeAndMike) &lt;a href=&quot;https://twitter.com/MikeAndMike/status/750678169439600640&quot;&gt;July 6, 2016&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;不过这些都是后话了，并没什么实际作用。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-5&quot;&gt;后记&lt;/h2&gt;
+&lt;hr /&gt;
+
+&lt;p&gt;你以为历史只会记住荣誉，而时间会冲淡其他的是是非非。&lt;/p&gt;
+
+&lt;p&gt;首先，这是错的。其次：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/public/img/kd/pic3.png&quot; width=&quot;550&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;你就这样留下维斯布鲁克一个人，未免太自私了吧。&lt;/p&gt;
+
+&lt;p&gt;最后，“懦夫”。&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;If u can&amp;#39;t beat um join um 🤔&lt;/p&gt;&amp;mdash; Paul Pierce (@paulpierce34) &lt;a href=&quot;https://twitter.com/paulpierce34/status/750021937573748736&quot;&gt;July 4, 2016&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
 </content>
  </entry>
  
