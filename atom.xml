@@ -4,7 +4,7 @@
  <title>谷雨</title>
  <link href="http://guyuwhu.github.io//atom.xml" rel="self"/>
  <link href="http://guyuwhu.github.io//"/>
- <updated>2016-12-10T23:23:00+08:00</updated>
+ <updated>2016-12-10T23:31:24+08:00</updated>
  <id>http://guyuwhu.github.io/</id>
  <author>
    <name>谷雨</name>
@@ -13,17 +13,18 @@
 
  
  <entry>
-   <title>网页设计展示</title>
+   <title>网页设计与制作--展示</title>
    <link href="http://guyuwhu.github.io//2016/12/10/wysj/"/>
    <updated>2016-12-10T00:00:00+08:00</updated>
    <id>http://guyuwhu.github.io//2016/12/10/wysj</id>
-   <content type="html">&lt;h1 id=&quot;section&quot;&gt;网页设计展示&lt;/h1&gt;
+   <content type="html">&lt;h1 id=&quot;section&quot;&gt;网页设计与制作&lt;/h1&gt;
 
 &lt;ul&gt;
   &lt;li&gt;姓名：谷雨&lt;/li&gt;
-  &lt;li&gt;学号：2014xxxxxxxxx&lt;/li&gt;
-  &lt;li&gt;……&lt;/li&gt;
+  &lt;li&gt;学号：2014301200103&lt;/li&gt;
+  &lt;li&gt;院系：经济与管理学院，金融工程&lt;/li&gt;
 &lt;/ul&gt;
+
 </content>
  </entry>
  
