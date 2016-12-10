@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79896728-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+  <title>XGBoost详解 &middot; Puxuan</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|PT+Serif:400,400italic,700,700italic" type="text/css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <!-- <link rel="stylesheet" href="/public/css/jekyll-github.css"> -->
+  <link rel="stylesheet" href="/public/css/styles/atelier-forest-light.css">
+  <script src="/public/css/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <!-- Insert to your webpage before the </head> -->
+  <script src="/public/audioplayerengine/jquery.js"></script>
+  <script src="/public/audioplayerengine/amazingaudioplayer.js"></script>
+  <link rel="stylesheet" type="text/css" href="/public/audioplayerengine/initaudioplayer-1.css">
+  <script src="/public/audioplayerengine/initaudioplayer-1.js"></script>
+  <!-- End of head section HTML codes -->
+
+  <link rel="canonical" href="http://puxuan.coding.me//2016/11/11/intro-to-xgboost/" />
+
+  
+
+  
+
+  
+
+  <style>
+    .content a,
+    .related-posts li a:hover {
+      color: #949667;
+    }
+    ::selection {
+      color: #fff;
+      background: #949667;
+    }
+    ::-moz-selection {
+      color: #fff;
+      background: #949667;
+    }
+  </style>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Puxuan" href="http://puxuan.coding.me//atom.xml">
+
+</head>
+
+
+  <body>
+    <a id="_menu" class="menu" href="#_sidebar">☰</a>
+
+    <main class="content container">
+      
+
+
+<article class="post">
+  <h1 class="post-title">XGBoost详解</h1>
+  <div class="post-date">
+    <time datetime="2016-11-11T00:00:00+08:00">11/11/16</time>
+    <span>on <a href="/tag/code/">Technique</a></span>
+  </div>
+  
+  <hr/>
+  <blockquote>
+  <p>The impact of the system has been widely recognized in a number of machine learning and data mining challenges. Take the challenges hosted by the machine learning competition site Kaggle for example. Among the 29 challenge winning solutions published at Kaggle’s blog during 2015, 17 solutions used XGBoost. <strong>Among these solutions, eight solely used XGBoost to train the model, while most others combined XGBoost with neural nets in ensembles. For comparison, the second most popular method, deep neural nets, was used in 11 solutions.</strong></p>
+</blockquote>
+
+<p>以上是XGBoost的主要作者陈天奇在论文里对该算法有效性的说明。</p>
+
+<p>本文分成三部分：</p>
+
+<ol>
+  <li>有监督学习的关键概念</li>
+  <li>XGBoost算法详解</li>
+  <li>从最简单的决策树到XGBoost的过程</li>
+  <li>对XGBoost的一些思考</li>
+</ol>
+
+<hr />
+
+<h2 id="section">一、有监督学习的关键概念</h2>
+
+<ul>
+  <li>记号：<span class="MathJax_Preview">x_i\in\mathbf{R}^d</span><script type="math/tex">x_i\in\mathbf{R}^d</script>代表第<span class="MathJax_Preview">i</span><script type="math/tex">i</script>个训练数据</li>
+  <li>模型：如何由给定的<span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script>做出预测<span class="MathJax_Preview">\hat{y_i}</span><script type="math/tex">\hat{y_i}</script>
+    <ul>
+      <li>线性模型：<span class="MathJax_Preview">\hat{y_i}=\Sigma_jw_jx_{ij}</span><script type="math/tex">\hat{y_i}=\Sigma_jw_jx_{ij}</script> （包括线性和逻辑回归）</li>
+      <li>根据不同的任务，预测值<span class="MathJax_Preview">\hat{y_i}</span><script type="math/tex">\hat{y_i}</script>有不同的含义
+        <ul>
+          <li>线性回归：<span class="MathJax_Preview">\hat{y_i}</span><script type="math/tex">\hat{y_i}</script>是我们需要的预测的结果</li>
+          <li>逻辑回归：<span class="MathJax_Preview">\frac{1}{1+e^{-\hat{y_i}}}</span><script type="math/tex">\frac{1}{1+e^{-\hat{y_i}}}</script>是结果为正的概率</li>
+          <li>其他… 比如在排序过程中，<span class="MathJax_Preview">\hat{y_i}</span><script type="math/tex">\hat{y_i}</script>可以是排序得分</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>参数：我们需要从数据中学习到的知识
+    <ul>
+      <li>线性模型：<span class="MathJax_Preview">\Theta = \{w_j\mid j=1,...,d\}</span><script type="math/tex">\Theta = \{w_j\mid j=1,...,d\}</script></li>
+    </ul>
+  </li>
+  <li>目标函数：<span class="MathJax_Preview">Obj(\Theta) = L(\Theta) + \color{red}{\Omega(\Theta)}</span><script type="math/tex">Obj(\Theta) = L(\Theta) + \color{red}{\Omega(\Theta)}</script>
+    <ul>
+      <li><span class="MathJax_Preview">L(\Theta)</span><script type="math/tex">L(\Theta)</script>是训练损失函数(training loss)，测算模型在测试数据上的<strong>准确度</strong>。训练集上的损失：<span class="MathJax_Preview">L=\Sigma^n_{i=1}l(y_i,\hat{y_i})</span><script type="math/tex">L=\Sigma^n_{i=1}l(y_i,\hat{y_i})</script>
+        <ul>
+          <li>平方损失:<span class="MathJax_Preview">l(y_i,\hat{y_i})=(y_i-\hat{y_i})^2</span><script type="math/tex">l(y_i,\hat{y_i})=(y_i-\hat{y_i})^2</script></li>
+          <li>逻辑损失:<span class="MathJax_Preview">l(y_i,\hat{y_i})=y_iln(1+e^{-\hat{y_i}})+(1-y_i)ln(1+e^{\hat{y_i}})</span><script type="math/tex">l(y_i,\hat{y_i})=y_iln(1+e^{-\hat{y_i}})+(1-y_i)ln(1+e^{\hat{y_i}})</script></li>
+        </ul>
+      </li>
+      <li><span class="MathJax_Preview">\Omega(\Theta)</span><script type="math/tex">\Omega(\Theta)</script>是正则化(regularization)，测算模型的复杂度
+        <ul>
+          <li>L2 norm:<span class="MathJax_Preview">\Omega(w)=\lambda\|w\|^2</span><script type="math/tex">\Omega(w)=\lambda\|w\|^2</script></li>
+          <li>L1 norm (lasso):<span class="MathJax_Preview">\Omega(w)=\lambda\|w\|_1</span><script type="math/tex">\Omega(w)=\lambda\|w\|_1</script></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="xgboost">二、XGBoost算法详解</h2>
+
+<p>在XGBoost中，我们在一个迭代的过程中，每一次迭代种一棵树，种这一棵树的目的是与之前的树合起来，使预测值在梯度方向上与准确值接近。</p>
+
+<h3 id="section-1">现在，问题1：</h3>
+
+<ul>
+  <li>怎么知道预测值与准确值接近？</li>
+</ul>
+
+<p>为了解决这个问题，我们定义一个目标函数<span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>，第t次迭代的目标函数写成<span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script>！</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: right"><span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script></th>
+      <th style="text-align: left"><span class="MathJax_Preview">=L(\theta)+\Omega(\theta)</span><script type="math/tex">=L(\theta)+\Omega(\theta)</script></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: right">(<span class="MathJax_Preview">y_i</span><script type="math/tex">y_i</script>是准确值，<span class="MathJax_Preview">\hat{y_i}^{(t)}</span><script type="math/tex">\hat{y_i}^{(t)}</script>是本轮<span class="MathJax_Preview">t</span><script type="math/tex">t</script>给出预测值)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">=L(y_i,\hat{y_i}^{(t)})+\Omega(\theta)</span><script type="math/tex">=L(y_i,\hat{y_i}^{(t)})+\Omega(\theta)</script></td>
+    </tr>
+    <tr>
+      <td style="text-align: right">(将<span class="MathJax_Preview">\hat{y_i}^{(t)}</span><script type="math/tex">\hat{y_i}^{(t)}</script>展开)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">=L(y_i,\hat{y_i}^{(t-1)}+\color{red}{f_t(x)})+\Omega(\theta)</span><script type="math/tex">=L(y_i,\hat{y_i}^{(t-1)}+\color{red}{f_t(x)})+\Omega(\theta)</script></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>上式中<span class="MathJax_Preview">\Omega</span><script type="math/tex">\Omega</script>是正则化项，防止模型过拟合，无论如何，<span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>主要刻画的是预测值和真实值的差距。我们现在的目的就是让当前次迭代中种出来树使<span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>最小。这就解决了问题1✅</p>
+
+<h3 id="section-2">问题2：</h3>
+
+<ul>
+  <li><span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>函数跟树有什么关系？</li>
+</ul>
+
+<p>在思考XGBoost的时候一定要有这样一个概念：“树就是函数，函数就是树”。上式中的<span class="MathJax_Preview">f_t(x)</span><script type="math/tex">f_t(x)</script>是我们要找的函数，通过树的形式来实现。我们知道树从最初的一个节点开始生长，是不断分叉的过程；我们的想法是，通过</p>
+
+<ol>
+  <li>改变节点上用于分叉的特征</li>
+  <li>改变特征的阈值</li>
+</ol>
+
+<p>一遍遍尝试分叉的可能性，看看哪种树的形态可以算出最低的<span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script>。</p>
+
+<h3 id="section-3">要解决问题2，我们尝试提出并解决问题3:</h3>
+
+<ul>
+  <li>给定树的结构，如何算出<span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script>的值？</li>
+</ul>
+
+<p>回到<span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script>的计算。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: right"><span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script></th>
+      <th style="text-align: left"><span class="MathJax_Preview">=L(\theta)+\Omega(\theta)</span><script type="math/tex">=L(\theta)+\Omega(\theta)</script></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: right">(<span class="MathJax_Preview">\hat{y_i}^{(t)}</span><script type="math/tex">\hat{y_i}^{(t)}</script>是本轮<span class="MathJax_Preview">t</span><script type="math/tex">t</script>给出预测值)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">=L(y_i,\hat{y_i}^{(t)})+\Omega(\theta)</span><script type="math/tex">=L(y_i,\hat{y_i}^{(t)})+\Omega(\theta)</script></td>
+    </tr>
+    <tr>
+      <td style="text-align: right">(将<span class="MathJax_Preview">\hat{y_i}^{(t)}</span><script type="math/tex">\hat{y_i}^{(t)}</script>展开)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">=L(y_i,\hat{y_i}^{(t-1)}+{f_t(x_i)})+\Omega(\theta)</span><script type="math/tex">=L(y_i,\hat{y_i}^{(t-1)}+{f_t(x_i)})+\Omega(\theta)</script></td>
+    </tr>
+    <tr>
+      <td style="text-align: right">(展开为n个样本的损失函数)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">=\Sigma_{i=1}^nl(y_i,\hat{y_i}^{(t-1)}+{f_t(x_i)})+\Omega(f_t)+\mathbf{C}</span><script type="math/tex">=\Sigma_{i=1}^nl(y_i,\hat{y_i}^{(t-1)}+{f_t(x_i)})+\Omega(f_t)+\mathbf{C}</script></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>感觉有点算不下去了，不过泰勒展开在这里可以帮我们一个大忙。要是不记得泰勒展开了：</p>
+
+<div class="MathJax_Preview">f(x+\Delta{x})\approx f(x)+f'(x)\Delta{x}+\frac12f''(x)\Delta{x}^2+\cdots</div>
+<script type="math/tex; mode=display">f(x+\Delta{x})\approx f(x)+f'(x)\Delta{x}+\frac12f''(x)\Delta{x}^2+\cdots</script>
+
+<p>定义：</p>
+
+<ul>
+  <li>样本i的一阶导<span class="MathJax_Preview">g_i=\partial_{\hat{y}^{(t-1)}}l(y_i,\hat{y_i}^{(t-1)})</span><script type="math/tex">g_i=\partial_{\hat{y}^{(t-1)}}l(y_i,\hat{y_i}^{(t-1)})</script></li>
+  <li>样本i的二阶导<span class="MathJax_Preview">h_i=\partial^2_{\hat{y}^{(t-1)}}l(y_i,\hat{y_i}^{(t-1)})</span><script type="math/tex">h_i=\partial^2_{\hat{y}^{(t-1)}}l(y_i,\hat{y_i}^{(t-1)})</script></li>
+</ul>
+
+<p>然后继续展开：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: right"><span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script></th>
+      <th style="text-align: left"><span class="MathJax_Preview">=\Sigma_{i=1}^nl(y_i,\hat{y_i}^{(t-1)}+{f_t(x_i)})+\Omega(f_t)+\mathbf{C}</span><script type="math/tex">=\Sigma_{i=1}^nl(y_i,\hat{y_i}^{(t-1)}+{f_t(x_i)})+\Omega(f_t)+\mathbf{C}</script></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: right">(展开)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">= \Sigma^n_{i=1}[l(y_i,\hat{y_i}^{(t-1)})+g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\Omega(f_t)+\mathbf{C}</span><script type="math/tex">= \Sigma^n_{i=1}[l(y_i,\hat{y_i}^{(t-1)})+g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\Omega(f_t)+\mathbf{C}</script></td>
+    </tr>
+    <tr>
+      <td style="text-align: right">(去掉非变量)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\Omega(f_t)</span><script type="math/tex">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\Omega(f_t)</script></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>定义正则项，刻画一棵树的复杂度</p>
+
+<div class="MathJax_Preview">\Omega(f_t)=\gamma\color{red}{ T}+\color{aqua}{\frac12 \lambda \Sigma^t_{j=1}w^2_j}</div>
+<script type="math/tex; mode=display">\Omega(f_t)=\gamma\color{red}{ T}+\color{aqua}{\frac12 \lambda \Sigma^t_{j=1}w^2_j}</script>
+
+<p><img src="/public/img/xgboostPic/QQ20161019-7.png" width="60%" /></p>
+
+<p><span class="MathJax_Preview">T</span><script type="math/tex">T</script>是叶子的数目，后面是一个l2 norm。继续刚才的式子：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: right"><span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script></th>
+      <th style="text-align: left"><span class="MathJax_Preview">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\Omega(f_t)</span><script type="math/tex">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\Omega(f_t)</script></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: right"> </td>
+      <td style="text-align: left"><span class="MathJax_Preview">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\gamma{ T}+{\frac12 \lambda \Sigma^t_{j=1}w^2_j}</span><script type="math/tex">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\gamma{ T}+{\frac12 \lambda \Sigma^t_{j=1}w^2_j}</script></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>现在式子没有办法化简了，因为<span class="MathJax_Preview">L(\theta)</span><script type="math/tex">L(\theta)</script>是按照<span class="MathJax_Preview">n</span><script type="math/tex">n</script>个样本来分的，而<span class="MathJax_Preview">\Omega(\theta)</span><script type="math/tex">\Omega(\theta)</script>是按照<span class="MathJax_Preview">T</span><script type="math/tex">T</script>个叶子来分的。既然同一个叶子上的样本函数值也相同，我们可以试图将<span class="MathJax_Preview">n</span><script type="math/tex">n</script>个样本转化为<span class="MathJax_Preview">T</span><script type="math/tex">T</script>个叶子。</p>
+
+<h3 id="section-4">现在一并解决问题2、3</h3>
+
+<ul>
+  <li>叶子上的得分串成一个向量，再构造映射函数把实例映射到叶子上去</li>
+</ul>
+
+<div class="MathJax_Preview">f_t(x)=w_{q(x)},w\in\mathbf{R}^T,q:\mathbf{R}^d\mapsto\{1,2,...,T\}</div>
+<script type="math/tex; mode=display">f_t(x)=w_{q(x)},w\in\mathbf{R}^T,q:\mathbf{R}^d\mapsto\{1,2,...,T\}</script>
+
+<blockquote>
+  <p><span class="MathJax_Preview">w</span><script type="math/tex">w</script>是树叶子的权重（得分），<span class="MathJax_Preview">q</span><script type="math/tex">q</script>是树的结构；<span class="MathJax_Preview">q(x)</span><script type="math/tex">q(x)</script>将输入样本转化为所在叶子的编号。</p>
+</blockquote>
+
+<p><img src="/public/img/xgboostPic/QQ20161019-6.png" width="60%" /></p>
+
+<ul>
+  <li>定义叶子<span class="MathJax_Preview">j</span><script type="math/tex">j</script>中的实例组为<span class="MathJax_Preview">I_j=\{i\mid q(x_i)=j\}</span><script type="math/tex">I_j=\{i\mid q(x_i)=j\}</script></li>
+  <li>把<span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>函数中的损失函数按照<span class="MathJax_Preview">T</span><script type="math/tex">T</script>个叶子重新展开</li>
+  <li>对于同一个叶子上的样本，定义<span class="MathJax_Preview">G_j=\Sigma_{i\in I_j}g_i,H_j=\Sigma_{i\in I_j}h_i</span><script type="math/tex">G_j=\Sigma_{i\in I_j}g_i,H_j=\Sigma_{i\in I_j}h_i</script></li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: right"><span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script></th>
+      <th style="text-align: left"><span class="MathJax_Preview">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\gamma{ T}+{\frac12 \lambda \Sigma^t_{j=1}w^2_j}</span><script type="math/tex">= \Sigma^n_{i=1}[g_if_t(x_i)+\frac12h_if_t^2(x_i)]+\gamma{ T}+{\frac12 \lambda \Sigma^t_{j=1}w^2_j}</script></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: right"> </td>
+      <td style="text-align: left"><span class="MathJax_Preview">=\Sigma^n_{i=1}[g_iw_q(x_i)+\frac12 h_iw^2_q(x_i)]+\gamma T+\frac12 \lambda\Sigma^T_{j=1}w^2_j</span><script type="math/tex">=\Sigma^n_{i=1}[g_iw_q(x_i)+\frac12 h_iw^2_q(x_i)]+\gamma T+\frac12 \lambda\Sigma^T_{j=1}w^2_j</script></td>
+    </tr>
+    <tr>
+      <td style="text-align: right"> </td>
+      <td style="text-align: left"><span class="MathJax_Preview">=\Sigma^T_{j=1}[(\Sigma_{i\in I_j}g_i)w_j+\frac12 (\Sigma_{i\in I_j}h_i+\lambda)w_j^2]+\gamma T</span><script type="math/tex">=\Sigma^T_{j=1}[(\Sigma_{i\in I_j}g_i)w_j+\frac12 (\Sigma_{i\in I_j}h_i+\lambda)w_j^2]+\gamma T</script></td>
+    </tr>
+    <tr>
+      <td style="text-align: right"> </td>
+      <td style="text-align: left"><span class="MathJax_Preview">=\Sigma^T_{j=1}[G_j w_j+\frac12 (H_j+\lambda)w_j^2]+\gamma T</span><script type="math/tex">=\Sigma^T_{j=1}[G_j w_j+\frac12 (H_j+\lambda)w_j^2]+\gamma T</script></td>
+    </tr>
+    <tr>
+      <td style="text-align: right">(常量标红)</td>
+      <td style="text-align: left"><span class="MathJax_Preview">=\Sigma^T_{j=1}[\color{red}{G_j} w_j+\color{red}{\frac12 (H_j+\lambda)}w_j^2]+\gamma T</span><script type="math/tex">=\Sigma^T_{j=1}[\color{red}{G_j} w_j+\color{red}{\frac12 (H_j+\lambda)}w_j^2]+\gamma T</script></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>上式变成一个关于<span class="MathJax_Preview">w_j</span><script type="math/tex">w_j</script>(叶子得分)的一元二次函数。</p>
+
+<p>翻开初中数学课本你就知道，一元二次函数取极值时：</p>
+
+<ul>
+  <li>自变量取<span class="MathJax_Preview">\arg \min_x (Gx+\frac12 Hx^2)=-\frac{G}{H},H&gt;0</span><script type="math/tex">\arg \min_x (Gx+\frac12 Hx^2)=-\frac{G}{H},H>0</script></li>
+  <li>因变量取<span class="MathJax_Preview">\min_x(Gx+\frac12 Hx^2)=-\frac12 \frac{G^2}{H}</span><script type="math/tex">\min_x(Gx+\frac12 Hx^2)=-\frac12 \frac{G^2}{H}</script></li>
+</ul>
+
+<p>对应地，想要<span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>函数取到最小值：</p>
+
+<ul>
+  <li>每个叶子的得分<span class="MathJax_Preview">w^*_j=-\frac{G_j}{H_j+\lambda}</span><script type="math/tex">w^*_j=-\frac{G_j}{H_j+\lambda}</script></li>
+  <li>对应的唯一最小目标函数值<span class="MathJax_Preview">Obj=-\frac12 \Sigma^T_{j=1}\frac{G_j^2}{H_j+\lambda}+\gamma T</span><script type="math/tex">Obj=-\frac12 \Sigma^T_{j=1}\frac{G_j^2}{H_j+\lambda}+\gamma T</script></li>
+</ul>
+
+<p><img src="/public/img/xgboostPic/QQ20161020-0.png" width="60%" /></p>
+
+<p>至此，问题2、3也被解决✅</p>
+
+<p>最后，就像前面所说的，通过</p>
+
+<ol>
+  <li>改变节点上用于分叉的特征</li>
+  <li>改变特征的阈值</li>
+</ol>
+
+<p>一遍遍尝试分叉的可能性，看看哪种树的形态可以算出最低的<span class="MathJax_Preview">Obj^{(t)}</span><script type="math/tex">Obj^{(t)}</script>。如果<span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>函数没法降低，那么就可以停止分叉，开始下一轮迭代了。</p>
+
+<hr />
+
+<h2 id="xgboost-1">三、从最简单的决策树到XGBoost的过程</h2>
+
+<blockquote>
+  <p>标📍处请重点阅读。</p>
+</blockquote>
+
+<h3 id="section-5">1.决策树</h3>
+
+<h4 id="section-6">简介</h4>
+
+<ul>
+  <li>决策树是一类算法的基类，是一种非参监督式学习模型。</li>
+  <li>它既可以应用于分类问题，也可以应用于回归问题。</li>
+  <li>它的目标是基于数据属性找到决定性规则，预测目标值。</li>
+</ul>
+
+<h4 id="section-7">决策树的特点</h4>
+
+<ul>
+  <li>优点：
+    <ul>
+      <li>模型解释性好</li>
+      <li>训练需要的数据少</li>
+      <li>回归和分类问题都可以处理</li>
+    </ul>
+  </li>
+  <li>缺点：
+    <ul>
+      <li>偏差-方差的tradeoff倾向于偏差，所以模型很容易过度拟合而且不稳定。</li>
+      <li>寻找最优决策树被证明为 NP-complete 问题，所以找到的是局部而不是全局最优（事实上贪心法往往都找不出最优解）。</li>
+    </ul>
+  </li>
+  <li>
+    <p>但是随着研究深入，过度拟合的问题已经通过</p>
+
+    <ul>
+      <li>与Boosting结合构成Boosted tree</li>
+      <li>与ensemble learning(如随机森林)结合</li>
+    </ul>
+  </li>
+</ul>
+
+<p>被攻克。</p>
+
+<hr />
+
+<h4 id="id3">📍1.(1) 典型的决策树：ID3(迭代二叉树)</h4>
+
+<ul>
+  <li>引入概念：熵(entropy)
+    <ul>
+      <li>给定一组数据集S，每个数据给一个标签，可以分到class<span class="MathJax_Preview">_1</span><script type="math/tex">_1</script>到class<span class="MathJax_Preview">_n</span><script type="math/tex">_n</script></li>
+      <li>class<span class="MathJax_Preview">_i</span><script type="math/tex">_i</script>所占的比例是<span class="MathJax_Preview">p_i</span><script type="math/tex">p_i</script></li>
+      <li>定义熵为<span class="MathJax_Preview">H(s)=-(p_1log_2p_1+p_2log_2p_2+\cdots+p_nlog_2p_n)</span><script type="math/tex">H(s)=-(p_1log_2p_1+p_2log_2p_2+\cdots+p_nlog_2p_n)</script></li>
+    </ul>
+  </li>
+  <li>熵的意义
+    <ul>
+      <li>热力学中，熵越大意味着混乱程度越大</li>
+      <li>统计学中，熵越大意味着不确定性越大</li>
+      <li>我们希望一个数据集S的不确定性越小越好</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="MathJax_Preview">f(p)=-plog(p)</div>
+<script type="math/tex; mode=display">f(p)=-plog(p)</script>
+
+<p><img src="/public/img/xgboostPic/198011-5a63c41a760506c7.png" width="30%" /></p>
+
+<ul>
+  <li>数据点分布在 <span class="MathJax_Preview">p\to 0</span><script type="math/tex">p\to 0</script> or <span class="MathJax_Preview">p\to 1</span><script type="math/tex">p\to 1</script>的极端，那这个规则可信</li>
+  <li>如果数据点分散不集中，则这个规则很有可能是错的</li>
+</ul>
+
+<p>于是我们得到了ID3的训练原理：</p>
+
+<ul>
+  <li>根据特征依次寻找分割的条件，使分割后的各<span class="MathJax_Preview">S_i</span><script type="math/tex">S_i</script>的熵总和最小</li>
+  <li>即最小化</li>
+</ul>
+
+<div class="MathJax_Preview">H=q_1H(s_1)+q_2H(s_2)+\cdots+q_nH(s_n)</div>
+<script type="math/tex; mode=display">H=q_1H(s_1)+q_2H(s_2)+\cdots+q_nH(s_n)</script>
+
+<p><span class="MathJax_Preview">q_i</span><script type="math/tex">q_i</script>是<span class="MathJax_Preview">s_i</span><script type="math/tex">s_i</script>的权重</p>
+
+<p>有的地方介绍ID3是讲最大化信息增益，而不是最小化熵</p>
+<ul>
+  <li>事实上这两种说法是一样的。</li>
+  <li>因为Information gain <span class="MathJax_Preview">=</span><script type="math/tex">=</script> entropy<span class="MathJax_Preview">_{bfr}</span><script type="math/tex">_{bfr}</script> <span class="MathJax_Preview">-</span><script type="math/tex">-</script> entropy<span class="MathJax_Preview">_{aft}</span><script type="math/tex">_{aft}</script></li>
+  <li>后者是下一个特征要考虑的问题，而从熵的角度看只是对于每一个特征的贪心算法，按上一个特征分已经求出一个定的entropy<span class="MathJax_Preview">_{bfr}</span><script type="math/tex">_{bfr}</script></li>
+</ul>
+
+<hr />
+
+<h4 id="cart">1.(2) 传统CART决策树</h4>
+
+<blockquote>
+  <p>CART = Classification And Regression Tree</p>
+</blockquote>
+
+<p>CART与ID3的区别：</p>
+
+<ul>
+  <li>CART中选用变量的不纯性度量是GINI指数
+    <ul>
+      <li>如果做一个分类问题，且含有两个以上的类别，则CART算法把目标类合并成两个超类</li>
+      <li>如果做一个回归问题，则CART算法找出一组基于树的回归方程来预测目标变量</li>
+    </ul>
+  </li>
+  <li>GINI指数：
+    <ul>
+      <li>是介于0~1之间的数，0-&gt;完全相等，1-&gt;完全不相等；</li>
+      <li>总体内包含的类别越杂乱，GINI指数就越大（跟熵的概念很相似）</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="MathJax_Preview">I_G(f)=\Sigma_{i=1}^mf_i(1-f_i)=\Sigma_{i=1}^m(f_i-f_i^2)=1-\Sigma_{i=1}^mf_i^2</div>
+<script type="math/tex; mode=display">I_G(f)=\Sigma_{i=1}^mf_i(1-f_i)=\Sigma_{i=1}^m(f_i-f_i^2)=1-\Sigma_{i=1}^mf_i^2</script>
+
+<hr />
+
+<h4 id="section-8">📍📍📍1.(3) 回归树</h4>
+
+<blockquote>
+  <p>此部分内容来自CMU的讲义<a href="http://www.stat.cmu.edu/~cshalizi/350-2006/lecture-10.pdf" target="_blank"> Lecture 10: Regression Trees </a></p>
+
+  <p>此处的回归树比上面的CART更接近于XGBoost中的”CART”基分类器</p>
+</blockquote>
+
+<p>上图中通过两个特征将一堆车分到六个叶子上，每个叶子有自己的得分。</p>
+
+<p>这里的回归树与XGBoost基分类器的区别在于</p>
+
+<ul>
+  <li>叶子上的得分：
+    <ul>
+      <li>回归树上的叶子得分是叶子上所有样本的目标值的均值</li>
+      <li>XGBoost的基分类器中叶子得分是通过梯度下降计算出来的</li>
+    </ul>
+  </li>
+  <li>分叉的评判依据：
+    <ul>
+      <li>回归树中，树<span class="MathJax_Preview">T</span><script type="math/tex">T</script>的评判标准是平方误差<span class="MathJax_Preview">S=\Sigma_{c\in leaves(T)}\Sigma_{i\in c}(y_i-m_c)^2</span><script type="math/tex">S=\Sigma_{c\in leaves(T)}\Sigma_{i\in c}(y_i-m_c)^2</script>
+        <ul>
+          <li>想法是“让同一个叶子中的样本的差距尽量小”</li>
+          <li>然后对于一个节点尝试不同的分叉方法使<span class="MathJax_Preview">S</span><script type="math/tex">S</script>最小</li>
+        </ul>
+      </li>
+      <li>XGBoost基分类器中，树<span class="MathJax_Preview">T</span><script type="math/tex">T</script>的评判标准是<span class="MathJax_Preview">Obj(\theta)=L(\theta)+\Omega(\theta)</span><script type="math/tex">Obj(\theta)=L(\theta)+\Omega(\theta)</script>
+        <ul>
+          <li>想法是“这棵树在Boosting过程中让预测值与真实值尽量接近（的同时结构不要太复杂）”</li>
+          <li>不管一个叶子里样本的差距大不大，只管让预测值在梯度方向上接近真实值就够了，可以说是更直接的一种想法</li>
+          <li>然后对于一个节点尝试不同的分叉方法使<span class="MathJax_Preview">Obj</span><script type="math/tex">Obj</script>最小</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h3 id="section-9">2.随机森林</h3>
+
+<h4 id="baggingboostrap-aggregating">Bagging(Boostrap Aggregating)</h4>
+
+<ul>
+  <li>有放回的随机抽样用于训练</li>
+</ul>
+
+<p>训练步骤：</p>
+
+<ol>
+  <li>如果训练集大小为N，则对于每棵树，<em>随机且有放回地</em>从训练集里取n个训练样本（行采样）</li>
+  <li>如果每个样本的特征维度是M，则指定一个常数m远小于M，<em>随机</em>从M个特征里选m个特征子集，每次树进行分裂的时候，从这m个子集中选择最优的（列采样）</li>
+  <li>每棵树都最大程度生长，不剪枝</li>
+</ol>
+
+<p>一开始我们提到的随机森林中的“随机”就是指的这里的两个随机性。由于它们的引入，使得随机森林不容易陷入过拟合，并且具有很好得抗噪能力。</p>
+
+<p>关键问题是如何选择最优的m（或者是范围），这也是<em>随机森林唯一的一个参数</em>。</p>
+
+<h4 id="section-10">随机森林算法简单解释</h4>
+
+<ul>
+  <li>按这种算法得到的随机森林中的每一棵都是很弱的，但是大家组合起来就很厉害了。</li>
+  <li>每一棵决策树就是一个精通于某一个窄领域的专家（因为我们从M个特征中选择m个让每一棵决策树进行学习），这样在随机森林中就有了很多个精通不同领域的专家。</li>
+  <li>对一个新的问题（输入样本），可以用不同的角度去看待它，最终由各个专家，投票得到结果。</li>
+</ul>
+
+<hr />
+
+<h3 id="gradient-boosting-">📍3.Gradient Boosting 梯度提升</h3>
+
+<ul>
+  <li>Gradient boosting的思想是迭代生多个弱的模型，然后将每个弱模型的预测结果相加。⚠️–&gt;“核心思想是减小残差”。</li>
+  <li>后面模型<span class="MathJax_Preview">f_{m}(x)</span><script type="math/tex">f_{m}(x)</script>基于前面学习模型的<span class="MathJax_Preview">f_{m-1}(x)</span><script type="math/tex">f_{m-1}(x)</script>的效果生成:<span class="MathJax_Preview">f_{m}(x) = f_{m-1}(x) + h(x)</span><script type="math/tex">f_{m}(x) = f_{m-1}(x) + h(x)</script>
+    <ul>
+      <li>如何找这个<span class="MathJax_Preview">h(x)</span><script type="math/tex">h(x)</script>？</li>
+    </ul>
+  </li>
+  <li>最理想的<span class="MathJax_Preview">h(x)</span><script type="math/tex">h(x)</script>应该是能够完全拟合<span class="MathJax_Preview">y-f_{m-1}(x)</span><script type="math/tex">y-f_{m-1}(x)</script>
+    <ul>
+      <li>这就是我们常说的基于残差的学习</li>
+    </ul>
+  </li>
+  <li>对于回归问题<span class="MathJax_Preview">\frac12 (y-f(x))^2</span><script type="math/tex">\frac12 (y-f(x))^2</script>残差和负梯度是相同的</li>
+  <li>损失函数<span class="MathJax_Preview">L(y,f)</span><script type="math/tex">L(y,f)</script>中的<span class="MathJax_Preview">f</span><script type="math/tex">f</script>不是传统意义上的函数，而是函数向量<span class="MathJax_Preview">[f(x_1),\cdots,f(x_n)]</span><script type="math/tex">[f(x_1),\cdots,f(x_n)]</script></li>
+  <li>因此基于损失函数的函数空间的负梯度的学习也称为“伪残差”</li>
+</ul>
+
+<h4 id="gb">GB算法的步骤</h4>
+
+<ul>
+  <li>
+    <p>初始化模型<span class="MathJax_Preview">f_0(x)=argmin_{\gamma}\Sigma_{i=1}^nL(y_i,\gamma)</span><script type="math/tex">f_0(x)=argmin_{\gamma}\Sigma_{i=1}^nL(y_i,\gamma)</script></p>
+  </li>
+  <li>
+    <p>执行循环</p>
+    <ol>
+      <li>计算伪残差<span class="MathJax_Preview">r_{im}=-[\frac{\partial L(y_i,f(x_i))}{\partial f(x_i)}]_{f(x)=f_{m-1}(x)},i=1,2,\cdots,n</span><script type="math/tex">r_{im}=-[\frac{\partial L(y_i,f(x_i))}{\partial f(x_i)}]_{f(x)=f_{m-1}(x)},i=1,2,\cdots,n</script></li>
+      <li>基于<span class="MathJax_Preview">\{(x_i,r_{im})\}^n_{i=1}</span><script type="math/tex">\{(x_i,r_{im})\}^n_{i=1}</script>生成基学习器<span class="MathJax_Preview">h_m(x)</span><script type="math/tex">h_m(x)</script></li>
+      <li>计算最优的<span class="MathJax_Preview">\gamma_m=argmin_{\gamma}\Sigma_{i=1}^nL(y_i,f_{m-1}(x_i)+\gamma h_m(x_i))</span><script type="math/tex">\gamma_m=argmin_{\gamma}\Sigma_{i=1}^nL(y_i,f_{m-1}(x_i)+\gamma h_m(x_i))</script></li>
+      <li>更新模型<span class="MathJax_Preview">f_m(x)=f_{m-1}(x)+\gamma_mh_m(x)</span><script type="math/tex">f_m(x)=f_{m-1}(x)+\gamma_mh_m(x)</script></li>
+    </ol>
+  </li>
+</ul>
+
+<hr />
+
+<h3 id="gbdt-">4.GBDT 梯度提升决策树</h3>
+
+<p>别名：</p>
+
+<ul>
+  <li>MART (Multiple Additive Regression Tree)</li>
+  <li>GBRT (Gradient Boost Regression Tree)</li>
+  <li>Tree Net</li>
+</ul>
+
+<p>在我看来，GBDT已经是80%XGBoost的样子了。整个Boosted tree的概念是建立在将Boosting中每一步加的那一个函数<span class="MathJax_Preview">h(x)</span><script type="math/tex">h(x)</script>映射成一棵决策树<span class="MathJax_Preview">T</span><script type="math/tex">T</script>。理论上这是完全可行的，因为GBDT的基学习器–回归树–本质上就是每一个输入样本可以对应一个输出值（叶子得分），这与函数的概念完全吻合。</p>
+
+<p>当谈到Boosted tree的基学习器回归树，Tianqi Chen如是说：</p>
+
+<blockquote>
+  <p>有人可能会问它和decision tree的关系，其实我们可以简单地把它理解为decision tree的一个扩展。从简单的类标到分数之后，我们可以做很多事情，如概率预测，排序。</p>
+</blockquote>
+
+<p>GBDT中的决策树是个弱模型，深度较小一般不会超过5，叶子节点的数量也不会超过10，对于生成的每棵决策树乘上比较小的缩减系数（学习率&lt;0.1），有些GBDT的实现加入了随机抽样（subsample 0.5&lt;=f &lt;=0.8）提高模型的泛化能力。通过交叉验证的方法选择最优的参数。</p>
+
+<hr />
+
+<h2 id="xgboost-2">四、XGBoost的一些思考</h2>
+
+<h3 id="xgboostgbdt">XGBoost建立在GBDT的基础上</h3>
+
+<ul>
+  <li>传统GBDT以CART作为基分类器，xgboost还支持线性分类器，这个时候xgboost相当于带L1和L2正则化项的逻辑斯蒂回归（分类问题）或者线性回归（回归问题）</li>
+  <li>传统GBDT在优化时只用到一阶导数信息，xgboost则对代价函数进行了二阶泰勒展开，同时用到了一阶和二阶导数，这样做的好处是收敛更快</li>
+  <li>xgboost在代价函数里加入了正则项，用于控制模型的复杂度。正则项里包含了树的叶子节点个数、每个叶子节点上输出的score的L2模的平方和。从Bias-variance tradeoff角度来讲，正则项降低了模型的variance，使学习出来的模型更加简单，防止过拟合</li>
+  <li>Shrinkage（缩减）。xgboost在进行完一次迭代后，会将叶子节点的权重乘上该系数，主要是为了削弱每棵树的影响，让后面有更大的学习空间。实际应用中，一般把eta设置得小一点，然后迭代次数设置得大一点。</li>
+  <li>列抽样（column subsampling）。xgboost借鉴了随机森林的做法，支持列抽样，不仅能降低过拟合，还能减少计算，这也是xgboost异于传统gbdt的一个特性。</li>
+</ul>
+
+<hr />
+
+<h3 id="xgboost-3">XGBoost的优化</h3>
+
+<ul>
+  <li>在寻找最佳分割点时，考虑传统的枚举每个特征的所有可能分割点的贪心法效率太低，xgboost实现了一种近似的算法。大致的思想是根据百分位法列举几个可能成为分割点的候选者，然后从候选者中根据上面求分割点的公式计算找出最佳的分割点。</li>
+  <li>xgboost考虑了训练数据为稀疏值的情况，可以为缺失值或者指定的值指定分支的默认方向，这能大大提升算法的效率，paper中讲到可以提到50倍。</li>
+  <li>特征列排序后以块的形式存储在内存中，在迭代中可以重复使用；虽然boosting算法迭代必须串行，但是在处理每个特征列时可以做到并行。</li>
+  <li>xgboost 还考虑了当数据量比较大，内存不够时怎么有效的使用磁盘，主要是结合多线程、数据压缩、分片的方法，尽可能的提高算法的效率。</li>
+  <li>按照特征列方式存储能优化寻找最佳的分割点，但是当以行计算梯度数据时会导致内存的不连续访问，严重时会导致cache miss，降低算法效率。paper中提到，可先将数据收集到线程内部的buffer，然后再计算，提高算法的效率。</li>
+</ul>
+
+<hr />
+
+<h3 id="xgboostcart">还有一个问题：xgboost代价函数里加入正则项，是否优于cart的剪枝？</h3>
+
+<ul>
+  <li>决策树的构建，从所有决策树中找出最佳的决策树，是NP-complete问题</li>
+  <li>所以常常采用启发式的方法，比如CART里优化GINI指数、剪枝、控制树的深度</li>
+  <li>这些启发式方法的背后往往隐含了一个目标函数，但是在XGBoost之前没有人提到这个问题</li>
+</ul>
+
+<div class="MathJax_Preview">Gain=\Delta Obj = \frac12 [\color{red}{\frac{G_L^2}{H_L+\lambda}} + \color{aqua}{\frac{G_R^2}{H_R+\lambda}} - \color{blue}{\frac{(G_L+G_R)^2}{H_L+H_R+\lambda}}] - \lambda</div>
+<script type="math/tex; mode=display">Gain=\Delta Obj = \frac12 [\color{red}{\frac{G_L^2}{H_L+\lambda}} + \color{aqua}{\frac{G_R^2}{H_R+\lambda}} - \color{blue}{\frac{(G_L+G_R)^2}{H_L+H_R+\lambda}}] - \lambda</script>
+
+<p>这个公式形式上跟ID3算法（entropy计算增益）、CART算法（GINI指数计算增益）是一致的，都是用分裂后的某种值 减去 分裂前的某种值，从而得到增益。为了限制树的生长，我们可以加入阈值，当增益大于阈值时才让节点分裂，上式中的gamma即阈值，它是正则项里叶子节点数T的系数，所以xgboost在优化目标函数的同时相当于做了预剪枝。另外，上式中还有一个系数lambda，是正则项里叶子得分的L2模平方的系数，对leaf score做了平滑，也起到了防止过拟合的作用，这个是传统GBDT里不具备的特性。</p>
+
+<p>详细的比较可以参考下面这个表。</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>目标式</td>
+      <td>启发式</td>
+    </tr>
+    <tr>
+      <td>信息增益</td>
+      <td><strong>训练损失</strong></td>
+    </tr>
+    <tr>
+      <td>剪枝</td>
+      <td><strong>根据节点数进行正则化</strong></td>
+    </tr>
+    <tr>
+      <td>最大深度</td>
+      <td><strong>函数域的限制</strong></td>
+    </tr>
+    <tr>
+      <td>叶子值的平滑</td>
+      <td><strong>叶子权重的L2正则化</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+
+</article>
+
+
+<aside class="author">
+  <h2 class="aside-title">About</h2>
+
+  
+  <img class="me" src="/public/img/profile.jpg" alt="Puxuan Yu"/>
+  
+
+  <p>Software Engineering @ WuhanU 🇨🇳 , ISTJ.</p>
+
+</aside>
+
+
+<aside class="related">
+  <h2 class="aside-title">Related Posts</h2>
+  <ul class="related-posts">
+    
+    
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/12/07/image-segmention/">
+              <span>Efficient Graph-based Image Segmentation</span>
+              <small>12/07/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+        
+        
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/10/28/nnfml1/">
+              <span>机器学习中的神经网络-笔记(1)</span>
+              <small>10/28/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/08/16/java-bit/">
+              <span>Java位运算实现四则运算</span>
+              <small>08/16/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+  </ul>
+</aside>
+
+
+<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key='/2016/11/11/intro-to-xgboost' data-title="XGBoost详解" data-url='http://puxuan.coding.me//2016/11/11/intro-to-xgboost/'></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"lucius0814"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+
+    </main>
+
+    
+
+
+
+
+
+<div   id="_backdrop" class="backdrop"></div>
+<aside id="_sidebar" class="sidebar" style="background-image:url('/public/img/code.jpg')">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1><a href="/">Puxuan</a></h1>
+      <p>10^14 synapses in a brain, and 10^9 seconds in a life.</p>
+
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/code/">Technique</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/travel/">Travel</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/music/">Music</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/other/">Misc</a>
+          </li>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+            <li>
+              <a class="sidebar-nav-item " href="/about/">About</a>
+            </li>
+            
+          
+        
+          
+        
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </nav>
+
+    <div class="sidebar-social">
+      
+        <a href="https://github.com/PxYu" target="_blank"><span class="icon-github"></span></a>
+
+      
+
+      
+        <a href="https://instagram.com/pxyuwhu" target="_blank"><span class="icon-instagram"></span></a>
+
+      
+
+      
+        <a href="https://twitter.com/pxyuwhu" target="_blank"><span class="icon-twitter-square"></span></a>
+
+      
+
+      
+        <a href="https://facebook.com/martin.yu.5249" target="_blank"><span class="icon-facebook-square"></span></a>
+
+      
+
+      
+        <a href="https://weibo.com/u/3290896193" target="_blank"><span class="icon-weibo"></span></a>
+
+      
+
+
+    </div>
+  </div>
+</aside>
+
+
+    <script src="/public/js/hydejack.js" async></script>
+  </body>
+</html>

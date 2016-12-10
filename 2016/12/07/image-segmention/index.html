@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79896728-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+  <title>Efficient Graph-based Image Segmentation &middot; Puxuan</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|PT+Serif:400,400italic,700,700italic" type="text/css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <!-- <link rel="stylesheet" href="/public/css/jekyll-github.css"> -->
+  <link rel="stylesheet" href="/public/css/styles/atelier-forest-light.css">
+  <script src="/public/css/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <!-- Insert to your webpage before the </head> -->
+  <script src="/public/audioplayerengine/jquery.js"></script>
+  <script src="/public/audioplayerengine/amazingaudioplayer.js"></script>
+  <link rel="stylesheet" type="text/css" href="/public/audioplayerengine/initaudioplayer-1.css">
+  <script src="/public/audioplayerengine/initaudioplayer-1.js"></script>
+  <!-- End of head section HTML codes -->
+
+  <link rel="canonical" href="http://puxuan.coding.me//2016/12/07/image-segmention/" />
+
+  
+
+  
+
+  
+
+  <style>
+    .content a,
+    .related-posts li a:hover {
+      color: #949667;
+    }
+    ::selection {
+      color: #fff;
+      background: #949667;
+    }
+    ::-moz-selection {
+      color: #fff;
+      background: #949667;
+    }
+  </style>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Puxuan" href="http://puxuan.coding.me//atom.xml">
+
+</head>
+
+
+  <body>
+    <a id="_menu" class="menu" href="#_sidebar">☰</a>
+
+    <main class="content container">
+      
+
+
+<article class="post">
+  <h1 class="post-title">Efficient Graph-based Image Segmentation</h1>
+  <div class="post-date">
+    <time datetime="2016-12-07T00:00:00+08:00">12/07/16</time>
+    <span>on <a href="/tag/code/">Technique</a></span>
+  </div>
+  
+  <hr/>
+  <h2 id="resources">Resources</h2>
+
+<ul>
+  <li>Paper: <em>Efficient Graph-Based Image Segmentation</em>
+    <ul>
+      <li>IJCV, Sep. 2004</li>
+      <li>Pedro F. Felzenszwalb @ MIT</li>
+      <li>Daniel P. Huttenlocher @ Cornell</li>
+    </ul>
+  </li>
+  <li>Code implementation
+    <ul>
+      <li>http://cs.brown.edu/~pff/segment/</li>
+      <li>written in C++</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="why-we-need-segmentation">Why we need segmentation?</h2>
+
+<p>A wide range of computational vision problems could in principle make good use of segmented images, were such segmentations <strong>reliably and efficiently computable</strong>.</p>
+
+<ul>
+  <li>Intermediate-level vision problems such as stereo and motion estimation require an appropriate region of support for correspondence operations.</li>
+  <li>Spatially non-uniform regions of support can be identified using segmentation techniques.</li>
+  <li>Higher-level problems such as recognition and image indexing can also make use of segmentation results in matching, to address problems such as figure-ground separation and recognition by parts.</li>
+</ul>
+
+<hr />
+
+<h2 id="properties">Properties</h2>
+
+<ul>
+  <li>Capture important groupings or regions, which often reflect global aspects of the image.</li>
+  <li>Be highly efficient (<strong>running in time nearly linear in the number of image pixels</strong>). In order to be of practical use, segmentation methods should run at speeds similar to edge detection or other low-level visual processing techniques.
+    <ul>
+      <li>application: video processing</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="basic-approach">Basic Approach</h2>
+
+<p>Graph-based image segmentation techniques represent the problem in terms of a <strong>undirected graph <span class="MathJax_Preview">G = (V,E)</span><script type="math/tex">G = (V,E)</script></strong>.</p>
+<ul>
+  <li>Each node <span class="MathJax_Preview">v_i \in V</span><script type="math/tex">v_i \in V</script> corresponds to a pixel in the image</li>
+  <li>The edges <span class="MathJax_Preview">e_i \in E</span><script type="math/tex">e_i \in E</script> connect certain pairs of neighboring pixels</li>
+</ul>
+
+<p>In the case of image segmentation, the elements in <span class="MathJax_Preview">V</span><script type="math/tex">V</script> are pixels and the weight of an edge is some measure of the dissimilarity between the two pixels connected by that edge. e.g., the difference in</p>
+<ul>
+  <li>intensity</li>
+  <li><strong>color</strong></li>
+  <li>motion</li>
+  <li>location</li>
+  <li>some other local attributes</li>
+</ul>
+
+<div class="MathJax_Preview">w(v_i,v_j)=\sqrt{(\Delta{r})^2+(\Delta{g})^2+(\Delta{b})^2}</div>
+<script type="math/tex; mode=display">w(v_i,v_j)=\sqrt{(\Delta{r})^2+(\Delta{g})^2+(\Delta{b})^2}</script>
+
+<p>Rewritting in Python be like…</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">diff_rgb</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">]</span> <span class="o">-</span> <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">]</span> <span class="o">-</span> <span class="n">img</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">]</span> <span class="o">-</span> <span class="n">img</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">r</span> <span class="o">+</span> <span class="n">g</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">diff_grey</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">]</span> <span class="o">-</span> <span class="n">img</span><span class="p">[</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>    
+</code></pre>
+</div>
+
+<hr />
+
+<h2 id="classical-clustering">Classical Clustering</h2>
+
+<p><strong>Un-adaptive criterion</strong></p>
+
+<p><img src="/public/img/seg/QQ20161208-191011.png" alt="" /></p>
+
+<ul>
+  <li>
+    <p>Widely varying intensities should not alone be judged as evidence for multiple regions. It is not adequate to assume that regions have nearly constant or <strong>slowly varying intensities</strong>.</p>
+  </li>
+  <li>
+    <p>The intensity difference across the boundary between the ramp and the constant region is actually smaller than many of the intensity differences within the high variability region. Thus, in order to segment such an image, some kind of <strong>adaptive or non-local criterion</strong> must be used.</p>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="in-short">In Short…</h2>
+
+<ul>
+  <li>Classical clustering methods use <strong>stable, “global” and unadaptive</strong> criterion to fill in the <span class="MathJax_Preview">e_i \in E</span><script type="math/tex">e_i \in E</script>
+    <ul>
+      <li>The earliest graph-based methods use <strong>fixed</strong> thresholds and <strong>local</strong> measures in computing a segmentation. (C.T.Zahn., IEEE Transactions on Computing, 1971.)</li>
+      <li>Not good enough!</li>
+    </ul>
+  </li>
+  <li>We want adapative criterion for different situations to make better decisions.</li>
+</ul>
+
+<hr />
+
+<h2 id="predicate">Predicate</h2>
+
+<ul>
+  <li>Define the <strong>internal difference</strong> of a component <span class="MathJax_Preview">C \in V</span><script type="math/tex">C \in V</script> to be the largest weight in the <strong>minimum spanning tree</strong> of the component, <span class="MathJax_Preview">MST(C,E)</span><script type="math/tex">MST(C,E)</script>. That is,</li>
+</ul>
+
+<div class="MathJax_Preview">Int(C)=\max_{e \in MST(C,E)} w(e)</div>
+<script type="math/tex; mode=display">Int(C)=\max_{e \in MST(C,E)} w(e)</script>
+
+<ul>
+  <li>Define the difference between two components <span class="MathJax_Preview">C_1, C_2 \in V</span><script type="math/tex">C_1, C_2 \in V</script> to be the minimum weight edge connecting the two components. That is,</li>
+</ul>
+
+<div class="MathJax_Preview">Dif(C_1,C_2)=\min_{v_i \in C_1,v_j \in C_2,(v_i,v_j)\in E}w((v_i,v_j))</div>
+<script type="math/tex; mode=display">Dif(C_1,C_2)=\min_{v_i \in C_1,v_j \in C_2,(v_i,v_j)\in E}w((v_i,v_j))</script>
+
+<blockquote>
+  <p>This measure of difference could <strong>in principle</strong> be problematic, because it reflects only the smallest edge weight between two components. In practice, the measure works quite well in spite of this apparent limitation.</p>
+</blockquote>
+
+<p>The <strong>region comparison predicate</strong>:</p>
+
+<p>If the difference between the components, <strong><span class="MathJax_Preview">Dif(C_1,C_2)</span><script type="math/tex">Dif(C_1,C_2)</script></strong> is large relative to the internal difference within <strong>at least</strong> one of the components, <strong><span class="MathJax_Preview">Int(C_1)</span><script type="math/tex">Int(C_1)</script></strong> and <strong><span class="MathJax_Preview">Int(C_2)</span><script type="math/tex">Int(C_2)</script></strong>, then there is evidence for a boundary between a pair or components</p>
+
+<p>We define the <strong>pairwise comparison predicate</strong> as,</p>
+
+<p><img src="/public/img/seg/QQ20161208-195420.png" alt="" /></p>
+
+<p>where the minimum internal difference, <span class="MathJax_Preview">MInt</span><script type="math/tex">MInt</script>, is defined as,</p>
+
+<div class="MathJax_Preview">MInt(C_1,C_2)=\min(Int(C_1)+\tau(C_1),Int(C_2)+\tau(C_2))</div>
+<script type="math/tex; mode=display">MInt(C_1,C_2)=\min(Int(C_1)+\tau(C_1),Int(C_2)+\tau(C_2))</script>
+
+<p>A threshold function <span class="MathJax_Preview">\tau</span><script type="math/tex">\tau</script> is used to control <strong>the degree</strong> to which <strong>the difference between components must be larger than minimum internal difference</strong> (so that <span class="MathJax_Preview">D</span><script type="math/tex">D</script> can be true).</p>
+
+<p>In the extreme case, when <span class="MathJax_Preview">\vert C\vert = 1,Int(C) = 0</span><script type="math/tex">\vert C\vert = 1,Int(C) = 0</script>. Therefore, we use a threshold function based on the size of the component,</p>
+
+<div class="MathJax_Preview">\tau (C)=k/\vert C\vert</div>
+<script type="math/tex; mode=display">\tau (C)=k/\vert C\vert</script>
+
+<p>That is, for small components we require stronger evidence for a boundary. In practice <span class="MathJax_Preview">k</span><script type="math/tex">k</script> sets a scale of observation, in that a larger <span class="MathJax_Preview">k</span><script type="math/tex">k</script> causes a preference for larger components.</p>
+
+<hr />
+
+<h2 id="new-algorithm">New Algorithm</h2>
+
+<ul>
+  <li><strong>Definition 1</strong>:
+    <ul>
+      <li>A segmentation <span class="MathJax_Preview">S</span><script type="math/tex">S</script> is too <strong>fine</strong> if there is some pair of regions <span class="MathJax_Preview">C_1, C_2 \in S</span><script type="math/tex">C_1, C_2 \in S</script> for which there is no evidence for a boundary between them.</li>
+    </ul>
+  </li>
+  <li><strong>Definition 2</strong>:
+    <ul>
+      <li>A segmentation <span class="MathJax_Preview">S</span><script type="math/tex">S</script> is too coarse when there exists a proper refinement of <span class="MathJax_Preview">S</span><script type="math/tex">S</script> that is not too fine.</li>
+    </ul>
+  </li>
+  <li><strong>Property 1</strong>:
+    <ul>
+      <li>For any (finite) graph <span class="MathJax_Preview">G = (V, E)</span><script type="math/tex">G = (V, E)</script> there exists some segmentation <span class="MathJax_Preview">S</span><script type="math/tex">S</script> that is neither too coarse nor too fine.</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>Algorithm</strong> <em>Segmentation algorithm.</em></p>
+<ul>
+  <li><strong>Input</strong>: a graph <span class="MathJax_Preview">G=(V,E)</span><script type="math/tex">G=(V,E)</script>, <span class="MathJax_Preview">n</span><script type="math/tex">n</script> vertices and <span class="MathJax_Preview">m</span><script type="math/tex">m</script> edges.</li>
+  <li><strong>Output</strong>: a segmentation of <span class="MathJax_Preview">V</span><script type="math/tex">V</script> into components <span class="MathJax_Preview">S=(C_1,\cdots,C_r)</span><script type="math/tex">S=(C_1,\cdots,C_r)</script></li>
+</ul>
+
+<p>0.Sort <span class="MathJax_Preview">E</span><script type="math/tex">E</script> into <span class="MathJax_Preview">\pi = (o_1,\cdots,o_m)</span><script type="math/tex">\pi = (o_1,\cdots,o_m)</script>, by non-decreasing edge weight.</p>
+
+<p>1.Start with a segmentation <span class="MathJax_Preview">S^0</span><script type="math/tex">S^0</script>, where each vertex <span class="MathJax_Preview">v_i</span><script type="math/tex">v_i</script> is in its own component.</p>
+
+<p>2.Repeat step 3 for <span class="MathJax_Preview">q = 1,\cdots,m</span><script type="math/tex">q = 1,\cdots,m</script>.</p>
+
+<p>3.Given <span class="MathJax_Preview">S^{q-1}</span><script type="math/tex">S^{q-1}</script>, construct <span class="MathJax_Preview">S^q</span><script type="math/tex">S^q</script> as follows.</p>
+
+<p>Let <span class="MathJax_Preview">v_i</span><script type="math/tex">v_i</script> and <span class="MathJax_Preview">v_j</span><script type="math/tex">v_j</script> denote vertices connected by the q-th edge, i.e., <span class="MathJax_Preview">o_q=(v_i,v_j)</span><script type="math/tex">o_q=(v_i,v_j)</script>.</p>
+
+<p><strong>If</strong>:</p>
+<ul>
+  <li><span class="MathJax_Preview">v_i</span><script type="math/tex">v_i</script> and <span class="MathJax_Preview">v_j</span><script type="math/tex">v_j</script> are in disjoint components of <span class="MathJax_Preview">S^{q-1}</span><script type="math/tex">S^{q-1}</script></li>
+  <li><span class="MathJax_Preview">w(o_q) \le MInt(C_i^{q-1},C_j^{q-1})</span><script type="math/tex">w(o_q) \le MInt(C_i^{q-1},C_j^{q-1})</script>.</li>
+</ul>
+
+<p>Then, <span class="MathJax_Preview">S^q</span><script type="math/tex">S^q</script> is obtained from <span class="MathJax_Preview">S^{q-1}</span><script type="math/tex">S^{q-1}</script> by merging <span class="MathJax_Preview">C_i^{q-1}</span><script type="math/tex">C_i^{q-1}</script> and <span class="MathJax_Preview">C_j^{q-1}</span><script type="math/tex">C_j^{q-1}</script>.
+Otherwise, <span class="MathJax_Preview">S^q=S^{q-1}</span><script type="math/tex">S^q=S^{q-1}</script>.</p>
+
+<p>4.Return <span class="MathJax_Preview">S=S^m</span><script type="math/tex">S=S^m</script></p>
+
+<h2 id="coding">Coding</h2>
+
+<ul>
+  <li>Rewritten in python</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">segment_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">threshold_func</span><span class="p">):</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">edge</span><span class="p">:</span> <span class="n">edge</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">forest</span> <span class="o">=</span> <span class="n">Forest</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">)</span>
+    <span class="n">sorted_graph</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">weight</span><span class="p">)</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="p">[</span><span class="n">threshold_func</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">const</span><span class="p">)]</span> <span class="o">*</span> <span class="n">num_nodes</span>
+
+    <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">sorted_graph</span><span class="p">:</span>
+        <span class="n">parent_a</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">parent_b</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">a_condition</span> <span class="o">=</span> <span class="n">weight</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">[</span><span class="n">parent_a</span><span class="p">]</span>
+        <span class="n">b_condition</span> <span class="o">=</span> <span class="n">weight</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">[</span><span class="n">parent_b</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">parent_a</span> <span class="o">!=</span> <span class="n">parent_b</span> <span class="ow">and</span> <span class="n">a_condition</span> <span class="ow">and</span> <span class="n">b_condition</span><span class="p">:</span>
+            <span class="n">forest</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">parent_a</span><span class="p">,</span> <span class="n">parent_b</span><span class="p">)</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">parent_a</span><span class="p">)</span>
+            <span class="n">threshold</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="n">weight</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">+</span> <span class="n">threshold_func</span><span class="p">(</span><span class="n">forest</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> 
+            								<span class="n">const</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">remove_small_components</span><span class="p">(</span><span class="n">forest</span><span class="p">,</span> <span class="n">sorted_graph</span><span class="p">,</span> <span class="n">min_size</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<hr />
+
+<h2 id="finally-the-outcomes">Finally, the outcomes!</h2>
+
+<p><img src="/public/img/seg/t2.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/r2.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/t3.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/r3.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/tt1.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/rr1.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/tt2.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/rr2.jpeg" alt="" /></p>
+
+<p><img src="/public/img/seg/tt6.jpeg" alt="" /></p>
+
+<div class="MathJax_Preview">MInt(C_1,C_2)=\min(Int(C_1)+\tau(C_1),Int(C_2)+\tau(C_2)),\tau (C)=k/|C|</div>
+<script type="math/tex; mode=display">MInt(C_1,C_2)=\min(Int(C_1)+\tau(C_1),Int(C_2)+\tau(C_2)),\tau (C)=k/|C|</script>
+
+<p><img src="/public/img/seg/rr61.jpeg" alt="" /></p>
+
+<div class="MathJax_Preview">k=500,\#comp=310</div>
+<script type="math/tex; mode=display">k=500,\#comp=310</script>
+
+<p><img src="/public/img/seg/rr62.jpeg" alt="" /></p>
+
+<div class="MathJax_Preview">k=1000,\#comp=131</div>
+<script type="math/tex; mode=display">k=1000,\#comp=131</script>
+
+</article>
+
+
+<aside class="author">
+  <h2 class="aside-title">About</h2>
+
+  
+  <img class="me" src="/public/img/profile.jpg" alt="Puxuan Yu"/>
+  
+
+  <p>Software Engineering @ WuhanU 🇨🇳 , ISTJ.</p>
+
+</aside>
+
+
+<aside class="related">
+  <h2 class="aside-title">Related Posts</h2>
+  <ul class="related-posts">
+    
+    
+    
+      
+        
+        
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/11/11/intro-to-xgboost/">
+              <span>XGBoost详解</span>
+              <small>11/11/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/10/28/nnfml1/">
+              <span>机器学习中的神经网络-笔记(1)</span>
+              <small>10/28/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/08/16/java-bit/">
+              <span>Java位运算实现四则运算</span>
+              <small>08/16/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+  </ul>
+</aside>
+
+
+<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key='/2016/12/07/image-segmention' data-title="Efficient Graph-based Image Segmentation" data-url='http://puxuan.coding.me//2016/12/07/image-segmention/'></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"lucius0814"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+
+    </main>
+
+    
+
+
+
+
+
+<div   id="_backdrop" class="backdrop"></div>
+<aside id="_sidebar" class="sidebar" style="background-image:url('/public/img/code.jpg')">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1><a href="/">Puxuan</a></h1>
+      <p>10^14 synapses in a brain, and 10^9 seconds in a life.</p>
+
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/code/">Technique</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/travel/">Travel</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/music/">Music</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/other/">Misc</a>
+          </li>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+            <li>
+              <a class="sidebar-nav-item " href="/about/">About</a>
+            </li>
+            
+          
+        
+          
+        
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </nav>
+
+    <div class="sidebar-social">
+      
+        <a href="https://github.com/PxYu" target="_blank"><span class="icon-github"></span></a>
+
+      
+
+      
+        <a href="https://instagram.com/pxyuwhu" target="_blank"><span class="icon-instagram"></span></a>
+
+      
+
+      
+        <a href="https://twitter.com/pxyuwhu" target="_blank"><span class="icon-twitter-square"></span></a>
+
+      
+
+      
+        <a href="https://facebook.com/martin.yu.5249" target="_blank"><span class="icon-facebook-square"></span></a>
+
+      
+
+      
+        <a href="https://weibo.com/u/3290896193" target="_blank"><span class="icon-weibo"></span></a>
+
+      
+
+
+    </div>
+  </div>
+</aside>
+
+
+    <script src="/public/js/hydejack.js" async></script>
+  </body>
+</html>

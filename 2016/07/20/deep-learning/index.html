@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79896728-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+  <title>深度学习：从入门到放弃 &middot; Puxuan</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|PT+Serif:400,400italic,700,700italic" type="text/css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <!-- <link rel="stylesheet" href="/public/css/jekyll-github.css"> -->
+  <link rel="stylesheet" href="/public/css/styles/atelier-forest-light.css">
+  <script src="/public/css/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <!-- Insert to your webpage before the </head> -->
+  <script src="/public/audioplayerengine/jquery.js"></script>
+  <script src="/public/audioplayerengine/amazingaudioplayer.js"></script>
+  <link rel="stylesheet" type="text/css" href="/public/audioplayerengine/initaudioplayer-1.css">
+  <script src="/public/audioplayerengine/initaudioplayer-1.js"></script>
+  <!-- End of head section HTML codes -->
+
+  <link rel="canonical" href="http://puxuan.coding.me//2016/07/20/deep-learning/" />
+
+  
+
+  
+
+  
+
+  <style>
+    .content a,
+    .related-posts li a:hover {
+      color: #949667;
+    }
+    ::selection {
+      color: #fff;
+      background: #949667;
+    }
+    ::-moz-selection {
+      color: #fff;
+      background: #949667;
+    }
+  </style>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Puxuan" href="http://puxuan.coding.me//atom.xml">
+
+</head>
+
+
+  <body>
+    <a id="_menu" class="menu" href="#_sidebar">☰</a>
+
+    <main class="content container">
+      
+
+
+<article class="post">
+  <h1 class="post-title">深度学习：从入门到放弃</h1>
+  <div class="post-date">
+    <time datetime="2016-07-20T00:00:00+08:00">07/20/16</time>
+    <span>on <a href="/tag/code/">Technique</a></span>
+  </div>
+  
+  <hr/>
+  <blockquote>
+  <p>深度学习的概念十分冗杂，各路信息参差不齐。本文原意是向实验室内同僚介绍相关概念，有兴趣了解相关知识的同学也可以阅读。有关卷积神经网络，支持向量机等具体的部分，我会在用时适时更新。</p>
+</blockquote>
+
+<h2 id="section">1、概述</h2>
+<hr />
+
+<p>人工智能，像长生不老和星际漫游一样，是人类最美好的梦想之一。</p>
+
+<p>虽然计算机技术已经取得了长足的进步，但是到目前为止，还没有一台电脑能产生“自我”的意识。在人类和大量现成数据的帮助下，电脑可以表现的十分强大，但是离开了这两者，它甚至都不能分辨一只猫和一只狗。</p>
+
+<p>图灵在 1950 年的论文里，提出图灵测试的设想。这无疑给计算机，尤其是人工智能，预设了一个很高的期望值。但是半个世纪过去了，人工智能的进展，远远没有达到图灵测试的标准。这让人们认为人工智能相关领域是“伪科学”。</p>
+
+<p>但是自 2006 年以来，机器学习领域，取得了突破性的进展。图灵测试，至少不是那么可望而不可及了。至于技术手段，不仅仅依赖于云计算对大数据的并行处理能力，而且依赖于算法。这个算法就是，“深度学习”。</p>
+
+<p>借助于 深度学习 算法，人类终于找到了如何处理“抽象概念”这个难题的方法。</p>
+
+<p>2012年6月，《纽约时报》披露了Google Brain项目，吸引了公众的广泛关注。这个项目是由著名的斯坦福大学的机器学习教授Andrew Ng和在大规模计算机系统方面的世界顶尖专家Jeff Dean共同主导，用16000个CPU Core的并行计算平台训练一种称为“深度神经网络”的机器学习模型。</p>
+
+<p><img src="/public/img/dl/google-brain.png" /></p>
+
+<p>这个叫做 DNN (deep neural network) 的机器学习模型内部共有10亿个节点。</p>
+
+<p>【这一网络自然是不能跟人类的神经网络相提并论的。要知道，人脑中可是有150多亿个神经元，互相连接的节点也就是突触数更是如银河沙数。曾经有人估算过，如果将一个人的大脑中所有神经细胞的轴突和树突依次连接起来，并拉成一根直线，可从地球连到月亮，再从月亮返回地球】。</p>
+
+<p>但是这个模型在语音识别和图像识别等领域获得了巨大的成功。</p>
+
+<p>项目负责人之一 Andrew 称：“我们没有像通常做的那样自己框定边界，而是直接把海量数据投放到算法中，让数据自己说话，系统会自动从数据中学习。”另外一名负责人 Jeff 则说：“我们在训练的时候从来不会告诉机器说：‘这是一只猫。’系统其实是自己发明或者领悟了“猫”的概念。”</p>
+
+<h2 id="section-1">2、机器学习与深度学习</h2>
+<hr />
+
+<p>机器学习其实我们实验室的大多数同学都应该接触过。</p>
+
+<p>如果大家记性还可以的话，我上次讲到过的 MLP(多层感知器) 和 KNN(k-最近邻居) 算法都是典型的机器学习算法。</p>
+
+<p><img src="/public/img/dl/kNN-2.jpg" width="300" /></p>
+
+<blockquote>
+  <p>knn 算法示意图</p>
+</blockquote>
+
+<p>knn 算法是典型的监督学习算法。</p>
+
+<p>步骤为：</p>
+
+<p><img src="/public/img/dl/img_0800.png" width="500" /></p>
+
+<p>1959年美国的塞缪尔(Samuel)设计了一个下棋程序，这个程序具有学习能力，它可以在不断的对弈中改善自己的棋艺。4年后，这个程序战胜了设计者本人。又过了3年，这个程序战胜了美国一个保持8年之久的常胜不败的冠军。这个程序向人们展示了机器学习的能力，提出了许多令人深思的社会问题与哲学问题。</p>
+
+<p>国际象棋自然是科学家测试 AI 的好工具：64个格子，32个棋子，规则可以被正规的规则所描述。国际象棋的难度不在于描述问题。</p>
+
+<p>人和机器在某种程度上是互补的。人的计算能力远逊与计算机，给计算机数据和计算的规则，短时间内计算机就可以给出人穷尽一生页无法计算出来的结果。但是另一方面，在直觉和感知上，计算机比人类差的太多。简单的理解文字、识别图像，对于计算机来说无比困难。</p>
+
+<p>AI 系统需要自己获取知识的能力，从原始数据中提取模式。这种能力叫机器学习。</p>
+
+<ul>
+  <li>logistics 回归可以预测你是否患了某种癌症；</li>
+  <li>朴素贝叶斯可以把正规邮件和垃圾邮件区分开；</li>
+  <li>…</li>
+</ul>
+
+<p>以上这些机器学习算法的表现很大程度上取决于数据的“呈现”。比如，AI 系统不会直接去检查病人，相关信息是由医生提供的；但你要是直接把 核磁共振的结果放到逻辑回归的输入里，系统就没办法处理了，可是 MRI 的每个点都跟病人患癌有很大关联。</p>
+
+<p>==&gt;数据的表现形式非常重要！</p>
+
+<p><img src="/public/img/dl/QQ20160718-7.png" width="300" /></p>
+
+<blockquote>
+  <p>在笛卡尔坐标系中用直线划开绿点和蓝点是不可能做到的，但是转换数据表示形式，在极坐标系中则轻而易举。</p>
+</blockquote>
+
+<p>机器学习虽然发展了几十年，但还是存在很多没有良好解决的问题：</p>
+
+<p><img src="/public/img/dl/1365435414_9821.jpg" width="400" /></p>
+
+<p>比如说：</p>
+
+<ul>
+  <li>图像识别</li>
+  <li>音频识别</li>
+  <li>自然语言处理</li>
+  <li>基因表达</li>
+  <li>天气预测</li>
+  <li>内容推荐</li>
+  <li>…</li>
+</ul>
+
+<p>以视觉处理为例子，</p>
+
+<p><img src="/public/img/dl/1365435432_2281.jpg" width="550" /></p>
+
+<p>最后一部分是机器学习做的工作，绝大多数相关的论文也是集中在这一方面。</p>
+
+<p>中间的三个部分我们统称为特征表达。</p>
+
+<p>特征表达的好不好对最终结果有巨大影响。但是在普通的机器学习过程中，这个部分是由人工去完成的，靠人工去提取特征。</p>
+
+<p>比如在上次做特征选择的试验中，我们采用不同的特征选择方法对影响测光红移的特征进行筛选。然而，手工地选取特征是一件非常费力、启发式（需要专业知识）的方法，能不能选取好很大程度上靠经验和运气，而且它的调节需要大量的时间。</p>
+
+<p>既然手工选取特征不太好，那么能不能自动地学习一些特征呢？答案是可以的。</p>
+
+<p>某种意义上来说，深度学习的功能就是做这件事情——自动选择特征。看看它的别名unsupervised feature learning 就知道，不需要人参与特征的选择过程。</p>
+
+<p>近几十年以来，认知神经科学、生物学等等学科的发展，让我们对自己这个神秘的而又神奇的大脑不再那么的陌生。也给人工智能的发展推波助澜。</p>
+
+<p><img src="/public/img/dl/img_0811.png" width="400" /></p>
+
+<p><img src="/public/img/dl/img_0812.png" width="400" /></p>
+
+<h2 id="section-2">3、人脑的视觉机理</h2>
+
+<p>1981 年的诺贝尔医学奖，颁发给了 David Hubel 和 TorstenWiesel，以及 Roger Sperry。前两位的主要贡献，是“发现了视觉系统的信息处理”：可视皮层是分级的：</p>
+
+<p><img src="/public/img/dl/1365435513_7934.jpg" width="400" /></p>
+
+<p>（具体的生物实验细节我就不啰嗦了，因为我也没太看明白。）</p>
+
+<p>他们得出的实验结果是：</p>
+
+<p>神经-中枢-大脑的工作过程，或许是一个不断迭代、不断抽象的过程。</p>
+
+<p>这里的关键词有两个，一个是抽象，一个是迭代。从原始信号，做低级抽象，逐渐向高级抽象迭代。人类的逻辑思维，经常使用高度抽象的概念。</p>
+
+<p>例如，从原始信号摄入开始（瞳孔摄入像素 Pixels），接着做初步处理（大脑皮层某些细胞发现边缘和方向），然后抽象（大脑判定，眼前的物体的形状，是圆形的），然后进一步抽象（大脑进一步判定该物体是只气球）。</p>
+
+<p><img src="/public/img/dl/1365435554_6921.jpg" width="400" /></p>
+
+<p>总的来说，人的视觉系统的信息处理是分级的。从低级的V1区提取边缘特征，再到V2区的形状或者目标的部分等，再到更高层，整个目标、目标的行为等。也就是说高层的特征是低层特征的组合，从低层到高层的特征表示越来越抽象，越来越能表现语义或者意图。而抽象层面越高，存在的可能猜测就越少，就越利于分类。</p>
+
+<h2 id="section-3">4、深度学习的基本思想</h2>
+<hr />
+
+<p>这一块我看了很多文献和讨论，很多人对深度学习都有不同的理解。我把这些人的想法综合了一下，提出我自己的想法，使其保持正确的同时，尽量的简洁易懂。</p>
+
+<p><img src="/public/img/dl/img_0801.png" width="400" /></p>
+
+<p>让调整系统参数使 <span class="MathJax_Preview">\mathbb{O}</span><script type="math/tex">\mathbb{O}</script> 尽量接近于 <span class="MathJax_Preview">\mathbb{I}</span><script type="math/tex">\mathbb{I}</script>。</p>
+
+<p>以上就是深度学习的基本思想。</p>
+
+<h2 id="shallow-learning">5、深度学习 和 浅层学习(shallow learning)</h2>
+<hr />
+
+<h3 id="section-4">机器学习的第一次浪潮是浅层学习：</h3>
+
+<p>八十年代出现的 BP 算法(反向传播算法)，开启了基于统计模型的机器学习，这个热潮一直持续到现在。</p>
+
+<p>利用BP算法可以让一个人工神经网络模型从大量训练样本中学习统计规律，从而对未知事件做预测。这种基于统计的机器学习方法比起过去基于人工规则的系统，在很多方面显出优越性。这个时候的人工神经网络，虽也被称作多层感知机（Multi-layer Perceptron），但实际是种只含有一层隐层节点的浅层模型。</p>
+
+<p><img src="/public/img/dl/img_0802.png" width="400" /></p>
+
+<p>20世纪90年代，各种各样的浅层机器学习模型相继被提出，例如支撑向量机、Boosting、最大熵方法（如Logistic Regression）等。这些模型的结构基本上可以看成带有一层隐层节点（如SVM、Boosting），或没有隐层节点（如LR）。这些模型无论是在理论分析还是应用中都获得了巨大的成功。</p>
+
+<p>相比之下，由于理论分析的难度大，训练方法又需要很多经验和技巧，这个时期浅层人工神经网络反而相对沉寂。</p>
+
+<h3 id="section-5">机器学习的第二次浪潮是深度学习：</h3>
+
+<p>2006年，加拿大多伦多大学教授、机器学习领域的泰斗Geoffrey Hinton和他的学生RuslanSalakhutdinov在《科学》上发表了一篇文章，开启了深度学习在学术界和工业界的浪潮。这篇文章有两个主要观点：</p>
+
+<ul>
+  <li>多隐层的人工神经网络具有优异的特征学习能力，学习得到的特征对数据有更本质的刻画，从而有利于可视化或分类。</li>
+  <li>深度神经网络在训练上的难度，可以通过“逐层初始化”来有效克服，在这篇文章中，逐层初始化是通过无监督学习实现的。</li>
+</ul>
+
+<p>我们在很多机器学习的教程中看到的线性回归、分类等学习算法，本质是浅层学习算法。他们的局限性在于对复杂的函数表示能力有限，遇到复杂的分类问题时，泛化能力一般。</p>
+
+<p>而深度学习是一种非线性的深层网络结构，实现复杂函数的逼近。显示出一种从少数样本集中学习数据集本质特征的能力。</p>
+
+<p><img src="/public/img/dl/1365439310_9542.jpg" width="400" /></p>
+
+<p>上图显示了深度学习的一个优点：“多层”可以用较少参数表示复杂函数</p>
+
+<p>深度学习的实质，是通过构建具有很多隐层的机器学习模型和海量的训练数据，来学习更有用的特征，从而最终提升分类或预测的准确性。</p>
+
+<p>因此，“深度模型”是手段，“特征学习”是目的。</p>
+
+<p>区别于传统的浅层学习，深度学习的不同在于：</p>
+
+<ul>
+  <li>强调了模型结构的深度，通常有5层、6层，甚至10多层的隐层节点；</li>
+  <li>明确突出了特征学习的重要性，也就是说，通过逐层特征变换，将样本在原空间的特征表示变换到一个新特征空间，从而使分类或预测更加容易。与人工规则构造特征的方法相比，利用大数据来学习特征，更能够刻画数据的丰富内在信息。</li>
+</ul>
+
+<h2 id="section-6">6、深度学习与神经网络</h2>
+<hr />
+
+<p>深度学习是机器学习的一个分支，是神经网络的发展。</p>
+
+<p>深度学习与传统的神经网络之间有相同的地方也有很多不同。</p>
+
+<p>相同：
+深度学习采用了神经网络相似的分层结构，系统由包括输入层、隐层（多层）、输出层组成的多层网络，只有相邻层节点之间有连接，同一层以及跨层节点之间相互无连接，每一层可以看作是一个logistic regression模型；这种分层结构，是比较接近人类大脑的结构的。</p>
+
+<p><img src="/public/img/dl/1365439360_3108.jpg" width="500" /></p>
+
+<p>不同：
+为了克服神经网络训练中的问题，DL采用了与神经网络很不同的训练机制。
+传统神经网络中，采用的是反向传播的方式进行，简单来讲就是采用迭代的算法来训练整个网络，随机设定初值，计算当前网络的输出，然后根据当前输出和label之间的差去改变前面各层的参数，直到收敛（整体是一个梯度下降法）。</p>
+
+<p>而深度学习整体上是一个“逐层”的训练机制。这样做的原因是因为，如果采用反向传播的机制，对于一个7层以上的深度网络，残差传播到最前面的层已经变得太小，出现所谓的梯度扩散。</p>
+
+<h2 id="section-7">7、深度学习的训练过程</h2>
+<hr />
+
+<p>BP 算法：(Back-propagation)</p>
+
+<p><img src="/public/img/dl/img_0810.png" /></p>
+
+<p><img src="/public/img/dl/0799b3d6e5e92245ee937db3c26d1b80_r.png" /></p>
+
+<p>BP 算法存在的问题：</p>
+
+<ul>
+  <li>梯度越来越稀疏：从顶层越往下，误差校正信号越来越小；</li>
+  <li>收敛到局部最小值：尤其是从远离最优区域开始的时候（随机值初始化会导致这种情况的发生）；</li>
+  <li>一般，我们只能用有标签的数据来训练：但大部分的数据是没标签的，而大脑可以从没有标签的的数据中学习；</li>
+</ul>
+
+<p><img src="/public/img/dl/QQ20160720-0.png" width="500" /></p>
+
+<p>深度学习的训练方法：</p>
+
+<p>如果对所有层同时训练，时间复杂度会太高；如果每次训练一层，偏差就会逐层传递。这会面临跟上面监督学习中相反的问题，会严重欠拟合（因为深度网络的神经元和参数太多了）。</p>
+
+<p>2006年，Hinton提出了在非监督数据上建立多层神经网络的一个有效方法，简单的说，分为两步，一是每次训练一层网络，二是调优，采用一种 wake-sleep 算法。</p>
+
+<p><img src="/public/img/dl/img_0807.png" /></p>
+
+<p>wake-sleep 算法是一种适用于随机多层神经网络的无监督学习算法。此算法包括两个阶段——“睡”和“醒”。此算法是后来才被应用到机器学习领域的，可以被视为训练 Helmholtz machine 的一种方法。</p>
+
+<p>为什么 wake-sleep 算法可以弥补 BP 算法的缺陷？</p>
+
+<p>在我看来，wake-sleep 基于第一步得到的各层参数进一步fine-tune整个多层模型的参数，这一步是一个有监督训练过程；第一步类似神经网络的随机初始化初值过程，由于深度学习的第一步不是随机初始化，而是通过学习输入数据的结构得到的，因而这个初值更接近全局最优，从而能够取得更好的效果。</p>
+
+<p>所以深度学习效果好很大程度上归功于第一步的特征学习过程。</p>
+
+<h2 id="section-8">8、深度学习的常见模型</h2>
+<hr />
+
+<ul>
+  <li>自动编码机</li>
+  <li>稀疏编码</li>
+  <li>限制玻尔兹曼机</li>
+  <li>深信度网络</li>
+  <li>卷积神经网络</li>
+  <li>递归神经网络</li>
+</ul>
+
+<h2 id="section-9">9、深度学习的应用领域</h2>
+<hr />
+
+<p>(1)图像处理：dreaming deep with caffe</p>
+
+<p>链接：<a href="https://github.com/google/deepdream">传送门</a></p>
+
+<p>模拟人做梦时候的图像。
+原理是用某种风格的图像来训练出模型，然后再把模型应用到自选的图片上。</p>
+
+<p><img src="/public/img/dl/van-gogh-starry-night-3d-poster.jpg" width="400" /></p>
+
+<p><img src="/public/img/dl/fall_reflection_silver_lake_california-wallpaper-1280x800.jpg" width="400" /></p>
+
+<p><img src="/public/img/dl/dream_8ea55d1fc6.jpg" width="400" /></p>
+
+<p>(2)语音处理：Music and Art Generation with Machine Intelligence</p>
+
+<p>链接：<a href="https://github.com/tensorflow/magenta">传送门</a></p>
+
+<p>(3)人工智能：AlphaGo</p>
+
+<p>要了解 AlphaGo，首先我们需要了解 AlphaGo 背后到底是一个什么东西。</p>
+
+<p>它背后是一套神经网络系统，由 Google 2014 年收购的英国人工智能公司 DeepMind 开发。这个系统和深蓝不同，不是一台超级计算机，而是一个由许多个数据中心作为节点相连，每个节点内有着多台超级计算机的神经网络系统。就像人脑，是由 50-100 亿个神经元所组成的，这也是为什么这种机器学习架构被称为神经网络。</p>
+
+<p>AlphaGo 只是在这个系统的基础上开发的一个实例【围棋的英文就叫GO】。</p>
+
+<p>这个系统的基础是 CNN，就是前面提到过的卷积神经网络。在 CNN 的基础上借鉴了深度强化学习(Deep Q-Learning, DQN)的思想。</p>
+
+<p><img src="/public/img/dl/3.jpg" /></p>
+
+<p>10 万盘高手棋谱作为初始数据，进行分类后用于训练策略函数；然后跟自己下棋；强化学习训练策略函数，继续下棋；下了 3000 万步后进行回归分析，整合蒙特卡洛树搜索模型，训练效用函数。</p>
+
+<p><img src="/public/img/dl/b1601727gw1f0f9cfwp6qg20hr08gqv5.gif" /></p>
+
+<p>传统的棋类 AI：穷举。</p>
+
+<p>AlphaGo：高级搜索树+深度神经网络(策略网络预测走法，价值网络预测胜负)</p>
+
+<p>(4)其他领域</p>
+
+<ul>
+  <li>通过改进RNN用来解决一些传统cs问题，比如凸包，三角剖分，甚至是TSP；</li>
+  <li>用LSTM来实现task-specific的自动化编程；</li>
+  <li>Learning to learn by gradient descent by gradient descent (通过通过梯度下降学习学习)；</li>
+  <li>Deep Predictive Coding Networks for Video Prediction and Unsupervised Learning (视频预测)；</li>
+  <li>开飞机；</li>
+  <li>…</li>
+</ul>
+
+<h2 id="section-10">10、深度学习的未来</h2>
+<hr />
+
+<p>(1)缺陷</p>
+
+<p>深度学习被批评为经验主义科学，在很多地方没法解释原理，研究者只能像研究黑盒子一样管理输入输出，并盲目地调整参数。</p>
+
+<p>“对深度学习的主要批评是许多方法缺乏理论支撑。大多数深度结构仅仅是梯度下降的某些变式。尽管梯度下降已经被充分地研究，但理论涉及的其他算法，例如对比分歧算法，并没有获得充分的研究，其收敛性等问题仍不明确。深度学习方法常常被视为黑盒，大多数的结论确认都由经验而非理论来确定。”</p>
+
+<p>(2)难点</p>
+
+<ul>
+  <li>局部最优问题；</li>
+  <li>内存消耗大；</li>
+  <li>人脑机理还有很多没有用上；</li>
+  <li>人为设计模板的可行性；</li>
+  <li>代价函数的设计方法。</li>
+</ul>
+
+<h2 id="tensorflow-softmax">11、tensorflow 框架演示(单层softmax)</h2>
+
+<h3 id="section-11">添加数据</h3>
+
+<p>对数据做一下说明。</p>
+
+<p>数据分成了三部分：</p>
+
+<ul>
+  <li>55,000份训练数据(mnist.train)</li>
+  <li>10,000份测试数据(mnist.test)</li>
+  <li>5,000份验证数据(mnist.validation)</li>
+</ul>
+
+<p>每一个数据有两部分：</p>
+
+<ul>
+  <li>xs:手写数字的图像 —&gt; (mnist.train.images)</li>
+  <li>ys:对应的标签 —&gt; (mnist.train.labels)</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">input_data</span>
+<span class="n">mnist</span> <span class="o">=</span> <span class="n">input_data</span><span class="o">.</span><span class="n">read_data_sets</span><span class="p">(</span><span class="s">"MNIST_data/"</span><span class="p">,</span> <span class="n">one_hot</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Extracting MNIST_data/train-images-idx3-ubyte.gz
+Extracting MNIST_data/train-labels-idx1-ubyte.gz
+Extracting MNIST_data/t10k-images-idx3-ubyte.gz
+Extracting MNIST_data/t10k-labels-idx1-ubyte.gz
+</code></pre>
+</div>
+
+<h3 id="section-12">如何表示数据</h3>
+
+<ul>
+  <li>对于image:</li>
+</ul>
+
+<p>我们把28px*28px的图像分成784个像素点，在python中表现为784个vector。在训练集中，mnist.train.images 是一个 tensor，大小为[55000,784]</p>
+
+<ul>
+  <li>对于 label:</li>
+</ul>
+
+<p>我们把 label 定义成一种 one-hot vector。比方说，3就成为[0,0,0,1,0,0,0,0,0,0]</p>
+
+<p><img src="/public/img/dl/mnist-train-xs.png" width="300" /></p>
+
+<p><img src="/public/img/dl/mnist-train-ys.png" width="300" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="kn">as</span> <span class="nn">tf</span>
+</code></pre>
+</div>
+
+<p>placeholder 的意思就是当我们要做运算的时候我们再输入值。
+None 表示可以是任意值。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="mi">784</span><span class="p">])</span>
+</code></pre>
+</div>
+
+<p>W,b 是我们需要学习的参数，在运算过程中是可以改变的，所以我们把它设成 Variables.</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">784</span><span class="p">,</span> <span class="mi">10</span><span class="p">]))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">10</span><span class="p">]))</span>
+</code></pre>
+</div>
+
+<p>现在我们实现我们的模型，就这么一行代码。</p>
+
+<p><img src="/public/img/dl/softmax-regression-scalargraph.png" width="500" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h3 id="section-13">训练模型</h3>
+
+<p>要训练我们的模型，首先我们需要定义什么样的模型才是好的模型。</p>
+
+<p>回顾前面的知识，我们知道模型需要一个代价函数(cost function)。这里我们采用交叉熵代价函数。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+</code></pre>
+</div>
+
+<p>交叉熵函数的定义</p>
+
+<div class="MathJax_Preview">H_{y^\prime}(y)=-\sum_i y_i^\prime log(y_i)</div>
+<script type="math/tex; mode=display">H_{y^\prime}(y)=-\sum_i y_i^\prime log(y_i)</script>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">cross_entropy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">y_</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">reduction_indices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</code></pre>
+</div>
+
+<p>定义训练的每一步的步骤，做训练前的准备。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">train_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">GradientDescentOptimizer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">cross_entropy</span><span class="p">)</span>
+
+<span class="n">init</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">initialize_all_variables</span><span class="p">()</span>
+
+<span class="n">sess</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>进行训练</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+  <span class="n">batch_xs</span><span class="p">,</span> <span class="n">batch_ys</span> <span class="o">=</span> <span class="n">mnist</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">next_batch</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+  <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">train_step</span><span class="p">,</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">batch_xs</span><span class="p">,</span> <span class="n">y_</span><span class="p">:</span> <span class="n">batch_ys</span><span class="p">})</span>
+</code></pre>
+</div>
+
+<p>检查一下正确率</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">correct_prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y_</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">accuracy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">correct_prediction</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">mnist</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">images</span><span class="p">,</span> <span class="n">y_</span><span class="p">:</span> <span class="n">mnist</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">labels</span><span class="p">}))</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0.9208
+</code></pre>
+</div>
+
+<h2 id="tensorflow-relu">12、tensorflow 框架演示(双层ReLU)</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># Import MINST data</span>
+<span class="kn">import</span> <span class="nn">input_data</span>
+<span class="n">mnist</span> <span class="o">=</span> <span class="n">input_data</span><span class="o">.</span><span class="n">read_data_sets</span><span class="p">(</span><span class="s">"MNIST_data/"</span><span class="p">,</span> <span class="n">one_hot</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="kn">as</span> <span class="nn">tf</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Extracting MNIST_data/train-images-idx3-ubyte.gz
+Extracting MNIST_data/train-labels-idx1-ubyte.gz
+Extracting MNIST_data/t10k-images-idx3-ubyte.gz
+Extracting MNIST_data/t10k-labels-idx1-ubyte.gz
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># Parameters</span>
+<span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.001</span>
+<span class="n">training_epochs</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">display_step</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c"># Network Parameters</span>
+<span class="n">n_hidden_1</span> <span class="o">=</span> <span class="mi">256</span> <span class="c"># 1st layer number of features</span>
+<span class="n">n_hidden_2</span> <span class="o">=</span> <span class="mi">256</span> <span class="c"># 2nd layer number of features</span>
+
+<span class="n">n_input</span> <span class="o">=</span> <span class="mi">784</span> <span class="c"># MNIST data input (img shape: 28*28)</span>
+<span class="n">n_classes</span> <span class="o">=</span> <span class="mi">10</span> <span class="c"># MNIST total classes (0-9 digits)</span>
+
+<span class="c"># tf Graph input</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="s">"float"</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_input</span><span class="p">])</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="s">"float"</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">])</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># Create model</span>
+<span class="k">def</span> <span class="nf">multilayer_perceptron</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">biases</span><span class="p">):</span>
+    <span class="c"># Hidden layer with RELU activation</span>
+    <span class="n">layer_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">weights</span><span class="p">[</span><span class="s">'h1'</span><span class="p">]),</span> <span class="n">biases</span><span class="p">[</span><span class="s">'b1'</span><span class="p">])</span>
+    <span class="n">layer_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">layer_1</span><span class="p">)</span>
+    <span class="c"># Hidden layer with RELU activation</span>
+    <span class="n">layer_2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">layer_1</span><span class="p">,</span> <span class="n">weights</span><span class="p">[</span><span class="s">'h2'</span><span class="p">]),</span> <span class="n">biases</span><span class="p">[</span><span class="s">'b2'</span><span class="p">])</span>
+    <span class="n">layer_2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">layer_2</span><span class="p">)</span>
+    <span class="c"># Output layer with linear activation</span>
+    <span class="n">out_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">layer_2</span><span class="p">,</span> <span class="n">weights</span><span class="p">[</span><span class="s">'out'</span><span class="p">])</span> <span class="o">+</span> <span class="n">biases</span><span class="p">[</span><span class="s">'out'</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out_layer</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># Store layers weight &amp; bias</span>
+<span class="n">weights</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'h1'</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">([</span><span class="n">n_input</span><span class="p">,</span> <span class="n">n_hidden_1</span><span class="p">])),</span>
+    <span class="s">'h2'</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">([</span><span class="n">n_hidden_1</span><span class="p">,</span> <span class="n">n_hidden_2</span><span class="p">])),</span>
+    <span class="s">'out'</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">([</span><span class="n">n_hidden_2</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">]))</span>
+<span class="p">}</span>
+<span class="n">biases</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'b1'</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">([</span><span class="n">n_hidden_1</span><span class="p">])),</span>
+    <span class="s">'b2'</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">([</span><span class="n">n_hidden_2</span><span class="p">])),</span>
+    <span class="s">'out'</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">([</span><span class="n">n_classes</span><span class="p">]))</span>
+<span class="p">}</span>
+
+<span class="c"># Construct model</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="n">multilayer_perceptron</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">biases</span><span class="p">)</span>
+
+<span class="c"># Define loss and optimizer</span>
+<span class="n">cost</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax_cross_entropy_with_logits</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
+
+<span class="c"># Initializing the variables</span>
+<span class="n">init</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">initialize_all_variables</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># Launch the graph</span>
+<span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+    <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init</span><span class="p">)</span>
+
+    <span class="c"># Training cycle</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">training_epochs</span><span class="p">):</span>
+        <span class="n">avg_cost</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">total_batch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mnist</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">num_examples</span><span class="o">/</span><span class="n">batch_size</span><span class="p">)</span>
+        <span class="c"># Loop over all batches</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_batch</span><span class="p">):</span>
+            <span class="n">batch_x</span><span class="p">,</span> <span class="n">batch_y</span> <span class="o">=</span> <span class="n">mnist</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">next_batch</span><span class="p">(</span><span class="n">batch_size</span><span class="p">)</span>
+            <span class="c"># Run optimization op (backprop) and cost op (to get loss value)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">cost</span><span class="p">],</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">batch_x</span><span class="p">,</span>
+                                                          <span class="n">y</span><span class="p">:</span> <span class="n">batch_y</span><span class="p">})</span>
+            <span class="c"># Compute average loss</span>
+            <span class="n">avg_cost</span> <span class="o">+=</span> <span class="n">c</span> <span class="o">/</span> <span class="n">total_batch</span>
+        <span class="c"># Display logs per epoch step</span>
+        <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="n">display_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">"Epoch:"</span><span class="p">,</span> <span class="s">'</span><span class="si">%04</span><span class="s">d'</span> <span class="o">%</span> <span class="p">(</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="s">"cost="</span><span class="p">,</span> \
+                <span class="s">"{:.9f}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avg_cost</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">"Optimization Finished!"</span>
+
+    <span class="c"># Test model</span>
+    <span class="n">correct_prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="c"># Calculate accuracy</span>
+    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">correct_prediction</span><span class="p">,</span> <span class="s">"float"</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">"Accuracy:"</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">.</span><span class="nb">eval</span><span class="p">({</span><span class="n">x</span><span class="p">:</span> <span class="n">mnist</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">images</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">mnist</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">labels</span><span class="p">})</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Epoch: 0001 cost= 176.348633782
+Epoch: 0002 cost= 42.163573426
+Epoch: 0003 cost= 26.251044493
+Epoch: 0004 cost= 18.303292441
+Epoch: 0005 cost= 13.337450484
+Epoch: 0006 cost= 9.829535431
+Epoch: 0007 cost= 7.438563815
+Epoch: 0008 cost= 5.577553053
+Epoch: 0009 cost= 4.213337710
+Epoch: 0010 cost= 3.108810833
+Epoch: 0011 cost= 2.451028091
+Epoch: 0012 cost= 1.861590531
+Epoch: 0013 cost= 1.460881729
+Epoch: 0014 cost= 1.074084880
+Epoch: 0015 cost= 0.834198667
+Epoch: 0016 cost= 0.648311651
+Epoch: 0017 cost= 0.555110107
+Epoch: 0018 cost= 0.583470874
+Epoch: 0019 cost= 0.510592484
+Epoch: 0020 cost= 0.452281083
+Epoch: 0021 cost= 0.488092144
+Epoch: 0022 cost= 0.376768316
+Epoch: 0023 cost= 0.371282564
+Epoch: 0024 cost= 0.336428243
+Epoch: 0025 cost= 0.345291770
+Epoch: 0026 cost= 0.337952591
+Epoch: 0027 cost= 0.318299568
+Epoch: 0028 cost= 0.272286880
+Epoch: 0029 cost= 0.333838176
+Epoch: 0030 cost= 0.281508733
+Epoch: 0031 cost= 0.280804645
+Epoch: 0032 cost= 0.256072080
+Epoch: 0033 cost= 0.246608315
+Epoch: 0034 cost= 0.254854202
+Epoch: 0035 cost= 0.212766817
+Epoch: 0036 cost= 0.294256025
+Epoch: 0037 cost= 0.208398752
+Epoch: 0038 cost= 0.189994233
+Epoch: 0039 cost= 0.191928244
+Epoch: 0040 cost= 0.213503004
+Epoch: 0041 cost= 0.226723124
+Epoch: 0042 cost= 0.171643451
+Epoch: 0043 cost= 0.257747782
+Epoch: 0044 cost= 0.192309855
+Epoch: 0045 cost= 0.149195256
+Epoch: 0046 cost= 0.195581870
+Epoch: 0047 cost= 0.196837781
+Epoch: 0048 cost= 0.142720352
+Epoch: 0049 cost= 0.190415204
+Epoch: 0050 cost= 0.194574075
+Optimization Finished!
+Accuracy: 0.9598
+</code></pre>
+</div>
+
+<p>准确率比单层softmax 提高不少。</p>
+
+<hr />
+
+<p>下回有机会再深入讲一下 卷积神经网络 或者 递归神经网络，取决于需求。</p>
+
+</article>
+
+
+<aside class="author">
+  <h2 class="aside-title">About</h2>
+
+  
+  <img class="me" src="/public/img/profile.jpg" alt="Puxuan Yu"/>
+  
+
+  <p>Software Engineering @ WuhanU 🇨🇳 , ISTJ.</p>
+
+</aside>
+
+
+<aside class="related">
+  <h2 class="aside-title">Related Posts</h2>
+  <ul class="related-posts">
+    
+    
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/12/07/image-segmention/">
+              <span>Efficient Graph-based Image Segmentation</span>
+              <small>12/07/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/11/11/intro-to-xgboost/">
+              <span>XGBoost详解</span>
+              <small>11/11/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/10/28/nnfml1/">
+              <span>机器学习中的神经网络-笔记(1)</span>
+              <small>10/28/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+    
+  </ul>
+</aside>
+
+
+<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key='/2016/07/20/deep-learning' data-title="深度学习：从入门到放弃" data-url='http://puxuan.coding.me//2016/07/20/deep-learning/'></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"lucius0814"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+
+    </main>
+
+    
+
+
+
+
+
+<div   id="_backdrop" class="backdrop"></div>
+<aside id="_sidebar" class="sidebar" style="background-image:url('/public/img/code.jpg')">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1><a href="/">Puxuan</a></h1>
+      <p>10^14 synapses in a brain, and 10^9 seconds in a life.</p>
+
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/code/">Technique</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/travel/">Travel</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/music/">Music</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/other/">Misc</a>
+          </li>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+            <li>
+              <a class="sidebar-nav-item " href="/about/">About</a>
+            </li>
+            
+          
+        
+          
+        
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </nav>
+
+    <div class="sidebar-social">
+      
+        <a href="https://github.com/PxYu" target="_blank"><span class="icon-github"></span></a>
+
+      
+
+      
+        <a href="https://instagram.com/pxyuwhu" target="_blank"><span class="icon-instagram"></span></a>
+
+      
+
+      
+        <a href="https://twitter.com/pxyuwhu" target="_blank"><span class="icon-twitter-square"></span></a>
+
+      
+
+      
+        <a href="https://facebook.com/martin.yu.5249" target="_blank"><span class="icon-facebook-square"></span></a>
+
+      
+
+      
+        <a href="https://weibo.com/u/3290896193" target="_blank"><span class="icon-weibo"></span></a>
+
+      
+
+
+    </div>
+  </div>
+</aside>
+
+
+    <script src="/public/js/hydejack.js" async></script>
+  </body>
+</html>

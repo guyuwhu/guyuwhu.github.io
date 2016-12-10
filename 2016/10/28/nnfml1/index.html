@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79896728-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+  <title>机器学习中的神经网络-笔记(1) &middot; Puxuan</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|PT+Serif:400,400italic,700,700italic" type="text/css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <!-- <link rel="stylesheet" href="/public/css/jekyll-github.css"> -->
+  <link rel="stylesheet" href="/public/css/styles/atelier-forest-light.css">
+  <script src="/public/css/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <!-- Insert to your webpage before the </head> -->
+  <script src="/public/audioplayerengine/jquery.js"></script>
+  <script src="/public/audioplayerengine/amazingaudioplayer.js"></script>
+  <link rel="stylesheet" type="text/css" href="/public/audioplayerengine/initaudioplayer-1.css">
+  <script src="/public/audioplayerengine/initaudioplayer-1.js"></script>
+  <!-- End of head section HTML codes -->
+
+  <link rel="canonical" href="http://puxuan.coding.me//2016/10/28/nnfml1/" />
+
+  
+
+  
+
+  
+
+  <style>
+    .content a,
+    .related-posts li a:hover {
+      color: #949667;
+    }
+    ::selection {
+      color: #fff;
+      background: #949667;
+    }
+    ::-moz-selection {
+      color: #fff;
+      background: #949667;
+    }
+  </style>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Puxuan" href="http://puxuan.coding.me//atom.xml">
+
+</head>
+
+
+  <body>
+    <a id="_menu" class="menu" href="#_sidebar">☰</a>
+
+    <main class="content container">
+      
+
+
+<article class="post">
+  <h1 class="post-title">机器学习中的神经网络-笔记(1)</h1>
+  <div class="post-date">
+    <time datetime="2016-10-28T00:00:00+08:00">10/28/16</time>
+    <span>on <a href="/tag/code/">Technique</a></span>
+  </div>
+  
+  <hr/>
+  <h1 id="section">机器学习中的神经网络-笔记(1)</h1>
+
+<h2 id="section-1">1.神经网络结构的种类</h2>
+<ul>
+  <li>前驱神经网络
+    <ul>
+      <li>实际应用中最普遍的神经网络
+        <ul>
+          <li>超过一层隐含层就被称为“深度”神经网络</li>
+        </ul>
+      </li>
+      <li>计算一系列改变样例间相似性的变换
+        <ul>
+          <li>每一层神经元的活动是下面一层（之前一层）神经元活动的非线性函数</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>循环神经网络
+    <ul>
+      <li>比前驱神经网络更加强大</li>
+      <li>连接图中含有 <strong>有向环</strong></li>
+      <li>有很复杂的动态，导致很难训练</li>
+      <li>更符合生物学理论</li>
+      <li>很适用于序列数据</li>
+      <li>可以在隐藏状态中记住信息</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="/public/img/neural/QQ20161028-0.png" /></p>
+
+<ul>
+  <li>对称连通网络
+    <ul>
+      <li>类似循环神经网络，但是神经元之间的连接是对称的
+        <ul>
+          <li>比循环神经网络更好分析</li>
+          <li>也限制了它的功能，因为违背了能量函数（比如无法对环建模）</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-2">2.感知器</h2>
+<p>感知器是一个模式识别系统的特例。感知器的学习过程现在仍然被应用于含有巨大数目特征的任务中。</p>
+
+<p><img src="/public/img/neural/QQ20161028-1.png" width="30%" /></p>
+
+<h3 id="section-3">决策单元</h3>
+
+<p>决策单元中的threshold相当于一个负偏差(bias)，而一个负偏差相当于一个输入为常数1，再在它身上加上权重<span class="MathJax_Preview">b</span><script type="math/tex">b</script>（与此同时输入<span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script>的权重是<span class="MathJax_Preview">w_i</span><script type="math/tex">w_i</script>）。这样一来我们学偏差就跟学权重没区别了，不需要再去为权重创造一条规则。</p>
+
+<p><img src="/public/img/neural/QQ20161028-2.png" width="30%" /></p>
+
+<h3 id="section-4">感知器的收敛过程（分类器）</h3>
+<ol>
+  <li>输入向量里加一个1，然后不用管threshold了。</li>
+  <li>选取一种数据选择的策略，只要保证每个数据都会被选到就行。
+    <ul>
+      <li>输出是对的：保持权重不要变</li>
+      <li>应该是0结果输出是1：把输入向量加到权重向量上去</li>
+      <li>应该是1结果输出是0：从权重向量上减去输入向量</li>
+    </ul>
+  </li>
+</ol>
+
+<p>以上过程保证可以为所有训练数据找到输出正确结果的权重，前提是这样的一组权重真正存在。事实上很多情况下这种权重是不存在的，取决于你使用的什么特征。所以很多问题的关键在于使用正确的特征。</p>
+
+<h2 id="section-5">3.从几何角度看感知器</h2>
+
+<blockquote>
+  <p>从13维到14维创造出的复杂度与从2维到3维没有区别。</p>
+</blockquote>
+
+<h3 id="section-6">权重空间</h3>
+<ul>
+  <li>每一个权重对应一维</li>
+  <li>空间中的一个点代表<strong>所有</strong>权值的某种设定</li>
+  <li>不考虑阀值的情况下，每一组训练实例都可以表示为权重空间里穿过原点的一个超平面
+    <ul>
+      <li>weights –&gt; point</li>
+      <li>training case –&gt; hyper-plane</li>
+    </ul>
+  </li>
+  <li>在超平面的一边的所有权重都会得到一样的答案</li>
+</ul>
+
+<image src="/public/img/neural/QQ20161028-3.png" width="30%" />
+
+<p>在这个2维图里，训练实例就是那个一个平面。它和 给出positive的输入向量是垂直的。</p>
+
+<p>现在蓝色向量输出是1，绿线和蓝线的数量积是正的，所以也会给出1的输出；如果权重取红色线那样的向量，则会给出0的输出，结果错误。</p>
+
+<blockquote>
+  <p>注意⚠️：这不代表权重都必须和蓝线在同一边！只是这里的蓝线输入为1而已。下图中蓝线输出为0，那么正确的权重应该与蓝线在超平面的不同侧。</p>
+</blockquote>
+
+<image src="/public/img/neural/QQ20161028-4.png" width="30%" />
+
+<p>输入（训练实例）把权重空间分成两部分，一面的所有权重给出正确答案，另一面给出错误答案。换句话说，输入向量“限制” 了权重。</p>
+
+<image src="/public/img/neural/QQ20161028-5.png" width="30%" />
+
+<p>同时有两个输入（两组数据）的时候，会出现一种如上图所示的锥形结构，相当于给权重空间加了两重限制。要使所有<span class="MathJax_Preview">n</span><script type="math/tex">n</script>个输入都得到正确的结果，就需要找落在<span class="MathJax_Preview">n</span><script type="math/tex">n</script>个所有超平面的正确的那一边的点。这个点很有可能是不存在的，如果存在这样的权重向量，那它一定在一个“超锥”(hyper-cone)中，且顶点在原点上。</p>
+
+<h2 id="section-7">4.感知器的工作原理</h2>
+
+<image src="/public/img/neural/QQ20161028-6.png" width="30%" />
+
+<p>假设存在一个权重满足所有输入，设它为可行向量，在图中表现为绿色。</p>
+
+<p>最开始的想法是：每次权重落在错误的一边，也就是犯一次错，这个权重就去更新一次，使得他和可行向量的距离拉近，这里的距离指的是欧几里得距离。</p>
+
+<p>但是有一个问题。如果说由图中的红色点移动到黄色点，那么通过犯一次错可以把错误的输出纠正成正确的输出，但是按照之前的想法，黄色点与可行向量的欧几里得距离事实上更大了，也就是更远了！不满足我们之前的预期，所以之前的想法有些问题。</p>
+
+<image src="/public/img/neural/QQ20161028-7.png" width="30%" />
+
+<p>再考虑一个“大致可行”的权重向量。“大致可行”的范围是：要把错的结果纠正成对的，而且可行区域至少要有蓝色输入向量那么长。现在的我们可以说：感知器每犯一次错，到“大致可行”的向量的欧几里得距离总在下降，且至少下降了<span class="MathJax_Preview">\mid \vec {upd} \mid ^2</span><script type="math/tex">\mid \vec {upd} \mid ^2</script>这么多。<span class="MathJax_Preview">\vec {upd}</span><script type="math/tex">\vec {upd}</script>是更新向量，即原来点指向新点。</p>
+
+<blockquote>
+  <p>注意⚠️：这些假设的前提都是可行向量存在；事实上可行向量有可能不存在。</p>
+</blockquote>
+
+<h2 id="section-8">5.感知器的局限性</h2>
+
+<ul>
+  <li>要是能手动选特征，而且有足够特征，那感知器基本可以做任何事情
+    <ul>
+      <li>很可惜这样会把人累死😂</li>
+    </ul>
+  </li>
+  <li>二元阀值输出单元甚至无法判断两个位特征是否相同
+    <ul>
+      <li>要求：(1,1) or (0,0)输出1；(1,0) or (0,1)输出0</li>
+      <li>可惜二元阀值输出单元搞不定这个问题</li>
+    </ul>
+  </li>
+</ul>
+
+<image src="/public/img/neural/QQ20161028-8.png" width="30%" />
+
+<ul>
+  <li>没有隐含层的神经网络在将输入映射到输出的过程中很有局限性
+    <ul>
+      <li>多层的线性单元没有什么用，因为合起来还是线性的</li>
+      <li>需要多层可适应的(adapative)、非线性的隐含单元。</li>
+    </ul>
+  </li>
+</ul>
+
+
+</article>
+
+
+<aside class="author">
+  <h2 class="aside-title">About</h2>
+
+  
+  <img class="me" src="/public/img/profile.jpg" alt="Puxuan Yu"/>
+  
+
+  <p>Software Engineering @ WuhanU 🇨🇳 , ISTJ.</p>
+
+</aside>
+
+
+<aside class="related">
+  <h2 class="aside-title">Related Posts</h2>
+  <ul class="related-posts">
+    
+    
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/12/07/image-segmention/">
+              <span>Efficient Graph-based Image Segmentation</span>
+              <small>12/07/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/11/11/intro-to-xgboost/">
+              <span>XGBoost详解</span>
+              <small>11/11/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+        
+        
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/08/16/java-bit/">
+              <span>Java位运算实现四则运算</span>
+              <small>08/16/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+  </ul>
+</aside>
+
+
+<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key='/2016/10/28/nnfml1' data-title="机器学习中的神经网络-笔记(1)" data-url='http://puxuan.coding.me//2016/10/28/nnfml1/'></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"lucius0814"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+
+    </main>
+
+    
+
+
+
+
+
+<div   id="_backdrop" class="backdrop"></div>
+<aside id="_sidebar" class="sidebar" style="background-image:url('/public/img/code.jpg')">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1><a href="/">Puxuan</a></h1>
+      <p>10^14 synapses in a brain, and 10^9 seconds in a life.</p>
+
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/code/">Technique</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/travel/">Travel</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/music/">Music</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/other/">Misc</a>
+          </li>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+            <li>
+              <a class="sidebar-nav-item " href="/about/">About</a>
+            </li>
+            
+          
+        
+          
+        
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </nav>
+
+    <div class="sidebar-social">
+      
+        <a href="https://github.com/PxYu" target="_blank"><span class="icon-github"></span></a>
+
+      
+
+      
+        <a href="https://instagram.com/pxyuwhu" target="_blank"><span class="icon-instagram"></span></a>
+
+      
+
+      
+        <a href="https://twitter.com/pxyuwhu" target="_blank"><span class="icon-twitter-square"></span></a>
+
+      
+
+      
+        <a href="https://facebook.com/martin.yu.5249" target="_blank"><span class="icon-facebook-square"></span></a>
+
+      
+
+      
+        <a href="https://weibo.com/u/3290896193" target="_blank"><span class="icon-weibo"></span></a>
+
+      
+
+
+    </div>
+  </div>
+</aside>
+
+
+    <script src="/public/js/hydejack.js" async></script>
+  </body>
+</html>

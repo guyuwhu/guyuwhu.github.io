@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79896728-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+  <title>KNN 算法 &middot; Puxuan</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|PT+Serif:400,400italic,700,700italic" type="text/css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <!-- <link rel="stylesheet" href="/public/css/jekyll-github.css"> -->
+  <link rel="stylesheet" href="/public/css/styles/atelier-forest-light.css">
+  <script src="/public/css/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <!-- Insert to your webpage before the </head> -->
+  <script src="/public/audioplayerengine/jquery.js"></script>
+  <script src="/public/audioplayerengine/amazingaudioplayer.js"></script>
+  <link rel="stylesheet" type="text/css" href="/public/audioplayerengine/initaudioplayer-1.css">
+  <script src="/public/audioplayerengine/initaudioplayer-1.js"></script>
+  <!-- End of head section HTML codes -->
+
+  <link rel="canonical" href="http://puxuan.coding.me//2016/06/04/KNN/" />
+
+  
+
+  
+
+  
+
+  <style>
+    .content a,
+    .related-posts li a:hover {
+      color: #949667;
+    }
+    ::selection {
+      color: #fff;
+      background: #949667;
+    }
+    ::-moz-selection {
+      color: #fff;
+      background: #949667;
+    }
+  </style>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Puxuan" href="http://puxuan.coding.me//atom.xml">
+
+</head>
+
+
+  <body>
+    <a id="_menu" class="menu" href="#_sidebar">☰</a>
+
+    <main class="content container">
+      
+
+
+<article class="post">
+  <h1 class="post-title">KNN 算法</h1>
+  <div class="post-date">
+    <time datetime="2016-06-04T00:00:00+08:00">06/04/16</time>
+    <span>on <a href="/tag/code/">Technique</a></span>
+  </div>
+  
+  <hr/>
+  <blockquote>
+  <p>在模式识别领域中，最近邻居法（KNN算法，又译K-近邻算法）是一种用于分类和回归的非参数统计方法。在这两种情况下，输入包含特征空间中的k个最接近的训练样本。</p>
+</blockquote>
+
+<p><strong>本文记录 KNN 算法的学习，同时也是学习和熟悉 python 的过程。</strong></p>
+
+<h2 id="section">导入包</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+</code></pre>
+</div>
+
+<h2 id="section-1">从文件中读取数据，将文本转换为矩阵，提取特征和类标</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">file2matrix</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="n">fr</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="n">arrayLines</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">numberOfLines</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrayLines</span><span class="p">)</span>    <span class="c">#文件行数</span>
+    <span class="n">returnMat</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="n">numberOfLines</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>    <span class="c">#行数*3的空矩阵</span>
+    <span class="n">classLabelVector</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">arrayLines</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>    <span class="c">#strip()函数去掉参数中的字符，空参数则去掉空格</span>
+        <span class="n">listFromLine</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)</span>    <span class="c">#split()函数通过分隔符把 string 分段，返回一个 list</span>
+        <span class="n">returnMat</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="o">=</span> <span class="n">listFromLine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">classLabelVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">listFromLine</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">returnMat</span><span class="p">,</span> <span class="n">classLabelVector</span>
+</code></pre>
+</div>
+
+<h2 id="section-2">看一下什么效果</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">testMat</span><span class="p">,</span> <span class="n">testVector</span> <span class="o">=</span> <span class="n">file2matrix</span><span class="p">(</span><span class="s">'datingTestSet.txt'</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">'testMat:'</span>
+<span class="k">print</span> <span class="n">testMat</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>testMat:
+[[  4.09200000e+04   8.32697600e+00   9.53952000e-01]
+ [  1.44880000e+04   7.15346900e+00   1.67390400e+00]
+ [  2.60520000e+04   1.44187100e+00   8.05124000e-01]
+ ..., 
+ [  2.65750000e+04   1.06501020e+01   8.66627000e-01]
+ [  4.81110000e+04   9.13452800e+00   7.28045000e-01]
+ [  4.37570000e+04   7.88260100e+00   1.33244600e+00]]
+</code></pre>
+</div>
+
+<h2 id="section-3">归一化数字特征值到0-1</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">autoNorm</span><span class="p">(</span><span class="n">dataSet</span><span class="p">):</span>    <span class="c">#输入是一个矩阵</span>
+    <span class="n">minVals</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="nb">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">maxVals</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="n">maxVals</span> <span class="o">-</span> <span class="n">minVals</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">(</span><span class="n">dataSet</span><span class="p">))</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">dataSet</span> <span class="o">-</span> <span class="n">tile</span><span class="p">(</span><span class="n">minVals</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>    <span class="c">#tile()函数将 minVals 矩阵“重复”(m,1)次</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">normDataSet</span><span class="o">/</span><span class="n">tile</span><span class="p">(</span><span class="n">ranges</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">normDataSet</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">minVals</span>
+</code></pre>
+</div>
+
+<h2 id="section-4">为了更好理解这个函数，我们试试每一步的输出</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">autoNormTest</span><span class="p">(</span><span class="n">dataSet</span><span class="p">):</span>
+    <span class="n">minVals</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="nb">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">'minVals:'</span>
+    <span class="k">print</span> <span class="n">minVals</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">maxVals</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">'maxVals:'</span>
+    <span class="k">print</span> <span class="n">maxVals</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="n">maxVals</span> <span class="o">-</span> <span class="n">minVals</span>
+    <span class="k">print</span> <span class="s">'ranges:'</span>
+    <span class="k">print</span> <span class="n">ranges</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">(</span><span class="n">dataSet</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">'shape(dataSet):'</span>
+    <span class="k">print</span> <span class="n">shape</span><span class="p">(</span><span class="n">dataSet</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">print</span> <span class="s">'zeros(shape(dataSet)):'</span>
+    <span class="k">print</span> <span class="n">normDataSet</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">print</span> <span class="s">'dataSet.shape[0]:'</span>
+    <span class="k">print</span> <span class="n">m</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">dataSet</span> <span class="o">-</span> <span class="n">tile</span><span class="p">(</span><span class="n">minVals</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">'tile(minVals, (m, 1)):'</span>
+    <span class="k">print</span> <span class="n">tile</span><span class="p">(</span><span class="n">minVals</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">print</span> <span class="s">'dataSet - tile(minVals, (m, 1)):'</span>
+    <span class="k">print</span> <span class="n">normDataSet</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">normDataSet</span><span class="o">/</span><span class="n">tile</span><span class="p">(</span><span class="n">ranges</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">'tile(ranges, (m, 1)):'</span>
+    <span class="k">print</span> <span class="n">tile</span><span class="p">(</span><span class="n">ranges</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">print</span> <span class="s">'normDataSet/tile(ranges, (m, 1)):'</span>
+    <span class="k">print</span> <span class="n">normDataSet</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">return</span> <span class="n">normDataSet</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">minVals</span>
+
+<span class="n">normDataSetTest</span><span class="p">,</span> <span class="n">rangesTest</span><span class="p">,</span> <span class="n">minValsTest</span> <span class="o">=</span> <span class="n">autoNormTest</span><span class="p">(</span><span class="n">testMat</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>minVals:
+[ 0.        0.        0.001156]
+--------------------
+maxVals:
+[  9.12730000e+04   2.09193490e+01   1.69551700e+00]
+--------------------
+ranges:
+[  9.12730000e+04   2.09193490e+01   1.69436100e+00]
+--------------------
+shape(dataSet):
+(1000, 3)
+--------------------
+zeros(shape(dataSet)):
+[[ 0.  0.  0.]
+ [ 0.  0.  0.]
+ [ 0.  0.  0.]
+ ..., 
+ [ 0.  0.  0.]
+ [ 0.  0.  0.]
+ [ 0.  0.  0.]]
+--------------------
+dataSet.shape[0]:
+1000
+--------------------
+tile(minVals, (m, 1)):
+[[ 0.        0.        0.001156]
+ [ 0.        0.        0.001156]
+ [ 0.        0.        0.001156]
+ ..., 
+ [ 0.        0.        0.001156]
+ [ 0.        0.        0.001156]
+ [ 0.        0.        0.001156]]
+--------------------
+dataSet - tile(minVals, (m, 1)):
+[[  4.09200000e+04   8.32697600e+00   9.52796000e-01]
+ [  1.44880000e+04   7.15346900e+00   1.67274800e+00]
+ [  2.60520000e+04   1.44187100e+00   8.03968000e-01]
+ ..., 
+ [  2.65750000e+04   1.06501020e+01   8.65471000e-01]
+ [  4.81110000e+04   9.13452800e+00   7.26889000e-01]
+ [  4.37570000e+04   7.88260100e+00   1.33129000e+00]]
+--------------------
+tile(ranges, (m, 1)):
+[[  9.12730000e+04   2.09193490e+01   1.69436100e+00]
+ [  9.12730000e+04   2.09193490e+01   1.69436100e+00]
+ [  9.12730000e+04   2.09193490e+01   1.69436100e+00]
+ ..., 
+ [  9.12730000e+04   2.09193490e+01   1.69436100e+00]
+ [  9.12730000e+04   2.09193490e+01   1.69436100e+00]
+ [  9.12730000e+04   2.09193490e+01   1.69436100e+00]]
+--------------------
+normDataSet/tile(ranges, (m, 1)):
+[[ 0.44832535  0.39805139  0.56233353]
+ [ 0.15873259  0.34195467  0.98724416]
+ [ 0.28542943  0.06892523  0.47449629]
+ ..., 
+ [ 0.29115949  0.50910294  0.51079493]
+ [ 0.52711097  0.43665451  0.4290048 ]
+ [ 0.47940793  0.3768091   0.78571804]]
+--------------------
+</code></pre>
+</div>
+
+<h2 id="section-5">现在再来看看之前的函数，打点注释：</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">autoNorm</span><span class="p">(</span><span class="n">dataSet</span><span class="p">):</span>    <span class="c">#输入是一个矩阵</span>
+    <span class="n">minVals</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="nb">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>    <span class="c">#min()函数输出矩阵中最小的行或列，参数为0输出行，为1输出列</span>
+    <span class="n">maxVals</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>    <span class="c">#同上理</span>
+    <span class="n">ranges</span> <span class="o">=</span> <span class="n">maxVals</span> <span class="o">-</span> <span class="n">minVals</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">(</span><span class="n">dataSet</span><span class="p">))</span>   <span class="c">#shape(dataSet) = (100,3)，然后做一个(100,3)的空矩阵 </span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>    <span class="c"># m 是 dataSet 矩阵的行数</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">dataSet</span> <span class="o">-</span> <span class="n">tile</span><span class="p">(</span><span class="n">minVals</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>    <span class="c">#tile()函数将 minVals 矩阵“重复”(m,1)次</span>
+    <span class="n">normDataSet</span> <span class="o">=</span> <span class="n">normDataSet</span><span class="o">/</span><span class="n">tile</span><span class="p">(</span><span class="n">ranges</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">normDataSet</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">minVals</span>
+</code></pre>
+</div>
+
+<h2 id="section-6">分类函数</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">classify</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">dataSet</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="n">dataSetSize</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>    <span class="c">#数据集的行数就是记录数</span>
+    <span class="s">'''计算距离'''</span>
+    <span class="n">diffMat</span> <span class="o">=</span> <span class="n">tile</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="p">(</span><span class="n">dataSetSize</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="n">dataSet</span>    <span class="c">#差值矩阵</span>
+    <span class="n">sqDiffMat</span> <span class="o">=</span> <span class="n">diffMat</span><span class="o">**</span><span class="mi">2</span>    <span class="c">#差值矩阵的平方</span>
+    <span class="n">sqDistances</span> <span class="o">=</span> <span class="n">sqDiffMat</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>    <span class="c">#每一行项的和</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">sqDistances</span><span class="o">**</span><span class="mf">0.5</span>    <span class="c">#开方得到距离</span>
+    <span class="n">sortedDistIndicies</span> <span class="o">=</span> <span class="n">distances</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>    <span class="c">#整理索引</span>
+    <span class="s">'''选择距离最小的k个点'''</span>
+    <span class="n">classCount</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+        <span class="n">voteIlabel</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">sortedDistIndicies</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="n">classCount</span><span class="p">[</span><span class="n">voteIlabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">classCount</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">voteIlabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="s">'''从大到小排序'''</span>
+    <span class="n">sortedClassCount</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">classCount</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">reverse</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sortedClassCount</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<h2 id="section-7">为了更好理解这个函数，我们试试每一步的输出</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">classifyTest</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">dataSet</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="n">dataSetSize</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>    <span class="c">#数据集的行数就是记录数</span>
+    <span class="k">print</span> <span class="s">'记录总数:'</span>
+    <span class="k">print</span> <span class="s">'dataSet.shape[0]:'</span>
+    <span class="k">print</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="s">'''计算距离'''</span>
+    <span class="k">print</span> <span class="s">'计算距离:'</span>
+    <span class="n">diffMat</span> <span class="o">=</span> <span class="n">tile</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="p">(</span><span class="n">dataSetSize</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="n">dataSet</span>    <span class="c">#差值矩阵</span>
+    <span class="k">print</span> <span class="s">'tile(sample, (dataSetSize,1)):'</span>
+    <span class="k">print</span> <span class="n">tile</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="p">(</span><span class="n">dataSetSize</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">print</span> <span class="s">'diffMat:'</span>
+    <span class="k">print</span> <span class="n">diffMat</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">sqDiffMat</span> <span class="o">=</span> <span class="n">diffMat</span><span class="o">**</span><span class="mi">2</span>    <span class="c">#差值矩阵的平方</span>
+    <span class="k">print</span> <span class="s">'sqDiffMat:'</span>
+    <span class="k">print</span> <span class="n">sqDiffMat</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">sqDistances</span> <span class="o">=</span> <span class="n">sqDiffMat</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>    <span class="c">#每一行项的和</span>
+    <span class="k">print</span> <span class="s">'sqDistances:'</span>
+    <span class="k">print</span> <span class="n">sqDistances</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">sqDistances</span><span class="o">**</span><span class="mf">0.5</span>    <span class="c">#开方得到距离</span>
+    <span class="k">print</span> <span class="s">'distances:'</span>
+    <span class="k">print</span> <span class="n">distances</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="n">sortedDistIndicies</span> <span class="o">=</span> <span class="n">distances</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>    <span class="c">#整理索引</span>
+    <span class="k">print</span> <span class="s">'distances.argsort():'</span>
+    <span class="k">print</span> <span class="n">distances</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="s">'''选择距离最小的k个点'''</span>
+    <span class="k">print</span> <span class="s">'选择距离最小的k个点:'</span>
+    <span class="n">classCount</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+        <span class="n">voteIlabel</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">sortedDistIndicies</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="k">print</span> <span class="s">'第</span><span class="si">%</span><span class="s">d近: '</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">'voteIlabel:'</span>
+        <span class="k">print</span> <span class="n">voteIlabel</span>
+        <span class="k">print</span> <span class="s">'--------------------'</span>
+        <span class="n">classCount</span><span class="p">[</span><span class="n">voteIlabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">classCount</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">voteIlabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">print</span> <span class="s">'classCount.get(voteIlabel, 0)'</span>
+        <span class="k">print</span> <span class="n">classCount</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">voteIlabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">'********************'</span>
+        
+    <span class="s">'''从大到小排序'''</span>
+    <span class="k">print</span> <span class="s">'从大到小排序:'</span>
+    <span class="k">print</span> <span class="s">'classCount:'</span>
+    <span class="k">print</span> <span class="n">classCount</span>
+    <span class="n">sortedClassCount</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">classCount</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> 
+                              <span class="n">key</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> 
+                              <span class="n">reverse</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">'classCount.items():'</span>
+    <span class="k">print</span> <span class="n">classCount</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">'sortedClassCount:'</span>
+    <span class="k">print</span> <span class="n">sortedClassCount</span>
+    <span class="k">print</span> <span class="s">'####################'</span>
+    <span class="k">return</span> <span class="n">sortedClassCount</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="s">'''测试用的数据:
+矩阵: 3  5  7  5  4   标签: a
+     4  6  2  9  0         b
+     3  5  2  1  7         a
+     3  6  7  3  1         a
+     9  4  2  5  7         b
+k 值取 3
+sample 取 [4,6,3,1,5]
+'''</span>
+
+<span class="n">mat</span> <span class="o">=</span> <span class="n">array</span><span class="p">(([</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span>
+             <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+             <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span>
+             <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+             <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">]),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">int</span><span class="p">)</span>
+<span class="n">lab</span> <span class="o">=</span> <span class="p">[</span><span class="s">'a'</span><span class="p">,</span><span class="s">'b'</span><span class="p">,</span><span class="s">'a'</span><span class="p">,</span><span class="s">'a'</span><span class="p">,</span><span class="s">'b'</span><span class="p">]</span>
+<span class="n">k</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">sam</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="n">classifyTest</span><span class="p">(</span><span class="n">sam</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">lab</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>记录总数:
+dataSet.shape[0]:
+5
+--------------------
+计算距离:
+tile(sample, (dataSetSize,1)):
+[[4 6 3 1 5]
+ [4 6 3 1 5]
+ [4 6 3 1 5]
+ [4 6 3 1 5]
+ [4 6 3 1 5]]
+--------------------
+diffMat:
+[[ 1  1 -4 -4  1]
+ [ 0  0  1 -8  4]
+ [ 1  1  1  0 -2]
+ [ 1  0 -4 -2  4]
+ [-4  2  1 -4 -2]]
+--------------------
+sqDiffMat:
+[[ 1  1 16 16  1]
+ [ 0  0  1 64 16]
+ [ 1  1  1  0  4]
+ [ 1  0 16  4 16]
+ [16  4  1 16  4]]
+--------------------
+sqDistances:
+[35 81  7 37 41]
+--------------------
+distances:
+[ 5.91607978  9.          2.64575131  6.08276253  6.40312424]
+--------------------
+distances.argsort():
+[2 0 3 4 1]
+--------------------
+--------------------
+--------------------
+选择距离最小的k个点:
+第1近: 
+voteIlabel:
+a
+--------------------
+classCount.get(voteIlabel, 0)
+1
+********************
+第2近: 
+voteIlabel:
+a
+--------------------
+classCount.get(voteIlabel, 0)
+2
+********************
+第3近: 
+voteIlabel:
+a
+--------------------
+classCount.get(voteIlabel, 0)
+3
+********************
+从大到小排序:
+classCount:
+{'a': 3}
+classCount.items():
+[('a', 3)]
+sortedClassCount:
+[('a', 3)]
+####################
+
+
+
+
+
+'a'
+</code></pre>
+</div>
+
+<h2 id="section-8">现在再来看看之前的函数，打点注释：</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">classify</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">dataSet</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="n">dataSetSize</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>    <span class="c">#数据集的行数就是记录数</span>
+    <span class="s">'''计算距离'''</span>
+    <span class="n">diffMat</span> <span class="o">=</span> <span class="n">tile</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="p">(</span><span class="n">dataSetSize</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="n">dataSet</span>    <span class="c">#差值矩阵</span>
+    <span class="n">sqDiffMat</span> <span class="o">=</span> <span class="n">diffMat</span><span class="o">**</span><span class="mi">2</span>    <span class="c">#差值矩阵的平方</span>
+    <span class="n">sqDistances</span> <span class="o">=</span> <span class="n">sqDiffMat</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>    <span class="c">#每一行项的和</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">sqDistances</span><span class="o">**</span><span class="mf">0.5</span>    <span class="c">#开方得到距离</span>
+    <span class="n">sortedDistIndicies</span> <span class="o">=</span> <span class="n">distances</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>    <span class="c">#整理索引</span>
+    <span class="s">'''选择距离最小的k个点'''</span>
+    <span class="n">classCount</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c">#创建一个字典</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>    <span class="c">#k 就是 KNN 中的 K 值</span>
+        <span class="n">voteIlabel</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">sortedDistIndicies</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>    <span class="c">#选取第 i+1 近的点，对着 labels 查出他的label</span>
+        <span class="n">classCount</span><span class="p">[</span><span class="n">voteIlabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">classCount</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">voteIlabel</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>    <span class="c">##该 label 的计数 加一</span>
+    <span class="s">'''从大到小排序'''</span>
+    <span class="n">sortedClassCount</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">classCount</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">reverse</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+                                                <span class="c">#将字典条目按照出现次数多少。从大到小排列</span>
+    <span class="k">return</span> <span class="n">sortedClassCount</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>    <span class="c">#取出现次数最多的 label</span>
+</code></pre>
+</div>
+
+<h2 id="section-9">针对约会网站的数据的测试代码</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">datingClassTest</span><span class="p">():</span>
+    <span class="n">hoRatio</span> <span class="o">=</span> <span class="mf">0.20</span>    <span class="c">#测试样例数据比例</span>
+    <span class="n">datingDataMat</span><span class="p">,</span> <span class="n">datingLabels</span> <span class="o">=</span> <span class="n">file2matrix</span><span class="p">(</span><span class="s">'datingTestSet.txt'</span><span class="p">)</span>
+    <span class="n">normMat</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">minVals</span> <span class="o">=</span> <span class="n">autoNorm</span><span class="p">(</span><span class="n">datingDataMat</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">normMat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">numTestVecs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">*</span><span class="n">hoRatio</span><span class="p">)</span>
+    <span class="n">errCount</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numTestVecs</span><span class="p">):</span>
+        <span class="n">classifierResult</span> <span class="o">=</span> <span class="n">classify</span><span class="p">(</span><span class="n">normMat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span> <span class="p">],</span> <span class="n">normMat</span><span class="p">[</span><span class="n">numTestVecs</span><span class="p">:</span><span class="n">m</span><span class="p">,</span> <span class="p">:</span> <span class="p">],</span> 
+                                    <span class="n">datingLabels</span><span class="p">[</span><span class="n">numTestVecs</span><span class="p">:</span><span class="n">m</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"分类器返回: </span><span class="si">%</span><span class="s">s, 真实答案是: </span><span class="si">%</span><span class="s">s"</span> <span class="o">%</span><span class="p">(</span><span class="n">classifierResult</span><span class="p">,</span> <span class="n">datingLabels</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">classifierResult</span> <span class="o">!=</span> <span class="n">datingLabels</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+            <span class="n">errCount</span> <span class="o">+=</span> <span class="mf">1.0</span>
+    <span class="k">print</span> <span class="s">'--------------------'</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"总错误率为: </span><span class="si">%</span><span class="s">f"</span> <span class="o">%</span><span class="p">(</span><span class="n">errCount</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">numTestVecs</span><span class="p">)))</span>
+</code></pre>
+</div>
+
+<h2 id="section-10">调用函数，进行测试</h2>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">datingClassTest</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: largeDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: didntLike
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: didntLike, 真实答案是: didntLike
+分类器返回: smallDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+分类器返回: largeDoses, 真实答案是: largeDoses
+分类器返回: smallDoses, 真实答案是: smallDoses
+--------------------
+总错误率为: 0.060000
+</code></pre>
+</div>
+
+<p>正确率为94%.</p>
+
+</article>
+
+
+<aside class="author">
+  <h2 class="aside-title">About</h2>
+
+  
+  <img class="me" src="/public/img/profile.jpg" alt="Puxuan Yu"/>
+  
+
+  <p>Software Engineering @ WuhanU 🇨🇳 , ISTJ.</p>
+
+</aside>
+
+
+<aside class="related">
+  <h2 class="aside-title">Related Posts</h2>
+  <ul class="related-posts">
+    
+    
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/12/07/image-segmention/">
+              <span>Efficient Graph-based Image Segmentation</span>
+              <small>12/07/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/11/11/intro-to-xgboost/">
+              <span>XGBoost详解</span>
+              <small>11/11/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/10/28/nnfml1/">
+              <span>机器学习中的神经网络-笔记(1)</span>
+              <small>10/28/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+    
+  </ul>
+</aside>
+
+
+<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key='/2016/06/04/KNN' data-title="KNN 算法" data-url='http://puxuan.coding.me//2016/06/04/KNN/'></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"lucius0814"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+
+    </main>
+
+    
+
+
+
+
+
+<div   id="_backdrop" class="backdrop"></div>
+<aside id="_sidebar" class="sidebar" style="background-image:url('/public/img/code.jpg')">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1><a href="/">Puxuan</a></h1>
+      <p>10^14 synapses in a brain, and 10^9 seconds in a life.</p>
+
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/code/">Technique</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/travel/">Travel</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/music/">Music</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/other/">Misc</a>
+          </li>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+            <li>
+              <a class="sidebar-nav-item " href="/about/">About</a>
+            </li>
+            
+          
+        
+          
+        
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </nav>
+
+    <div class="sidebar-social">
+      
+        <a href="https://github.com/PxYu" target="_blank"><span class="icon-github"></span></a>
+
+      
+
+      
+        <a href="https://instagram.com/pxyuwhu" target="_blank"><span class="icon-instagram"></span></a>
+
+      
+
+      
+        <a href="https://twitter.com/pxyuwhu" target="_blank"><span class="icon-twitter-square"></span></a>
+
+      
+
+      
+        <a href="https://facebook.com/martin.yu.5249" target="_blank"><span class="icon-facebook-square"></span></a>
+
+      
+
+      
+        <a href="https://weibo.com/u/3290896193" target="_blank"><span class="icon-weibo"></span></a>
+
+      
+
+
+    </div>
+  </div>
+</aside>
+
+
+    <script src="/public/js/hydejack.js" async></script>
+  </body>
+</html>

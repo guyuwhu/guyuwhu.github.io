@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79896728-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+  <title>构建一个神经网络：逻辑分类函数 &middot; Puxuan</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|PT+Serif:400,400italic,700,700italic" type="text/css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <!-- <link rel="stylesheet" href="/public/css/jekyll-github.css"> -->
+  <link rel="stylesheet" href="/public/css/styles/atelier-forest-light.css">
+  <script src="/public/css/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <!-- Insert to your webpage before the </head> -->
+  <script src="/public/audioplayerengine/jquery.js"></script>
+  <script src="/public/audioplayerengine/amazingaudioplayer.js"></script>
+  <link rel="stylesheet" type="text/css" href="/public/audioplayerengine/initaudioplayer-1.css">
+  <script src="/public/audioplayerengine/initaudioplayer-1.js"></script>
+  <!-- End of head section HTML codes -->
+
+  <link rel="canonical" href="http://puxuan.coding.me//2016/07/11/neural-network-2/" />
+
+  
+
+  
+
+  
+
+  <style>
+    .content a,
+    .related-posts li a:hover {
+      color: #949667;
+    }
+    ::selection {
+      color: #fff;
+      background: #949667;
+    }
+    ::-moz-selection {
+      color: #fff;
+      background: #949667;
+    }
+  </style>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Puxuan" href="http://puxuan.coding.me//atom.xml">
+
+</head>
+
+
+  <body>
+    <a id="_menu" class="menu" href="#_sidebar">☰</a>
+
+    <main class="content container">
+      
+
+
+<article class="post">
+  <h1 class="post-title">构建一个神经网络：逻辑分类函数</h1>
+  <div class="post-date">
+    <time datetime="2016-07-11T00:00:00+08:00">07/11/16</time>
+    <span>on <a href="/tag/code/">Technique</a></span>
+  </div>
+  
+  <hr/>
+  <h2 id="section">实现神经网络：逻辑分类函数</h2>
+
+<p>如果想用神经网络来完成分类的工作，我们需要对输出 <span class="MathJax_Preview">t</span><script type="math/tex">t</script> 输出一个概率分布。</p>
+
+<p>如果只分两类：<span class="MathJax_Preview">t=1</span><script type="math/tex">t=1</script> 或 <span class="MathJax_Preview">t=0</span><script type="math/tex">t=0</script>,我们用逻辑回归中的逻辑函数。</p>
+
+<p>如果要分多类，上述函数有扩展版本称为 <strong>softmax function</strong>。</p>
+
+<p>下面我们主要讲一下逻辑函数。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</code></pre>
+</div>
+
+<h3 id="section-1">逻辑函数</h3>
+
+<p>目标是通过输入<span class="MathJax_Preview">z</span><script type="math/tex">z</script>预测目标类<span class="MathJax_Preview">t</span><script type="math/tex">t</script>。输入<span class="MathJax_Preview">z</span><script type="math/tex">z</script>被归为 <span class="MathJax_Preview">t=1</span><script type="math/tex">t=1</script> 时的概率 <span class="MathJax_Preview">P(t=1 \mid z)</span><script type="math/tex">P(t=1 \mid z)</script> 用逻辑函数 <span class="MathJax_Preview">y = \sigma(z)</span><script type="math/tex">y = \sigma(z)</script> 的输出<span class="MathJax_Preview">y</span><script type="math/tex">y</script>来表示。<span class="MathJax_Preview">\sigma</span><script type="math/tex">\sigma</script>即是逻辑函数，其定义为：</p>
+
+<div class="MathJax_Preview">\sigma(z) = \frac{1}{1+e^{-z}}</div>
+<script type="math/tex; mode=display">\sigma(z) = \frac{1}{1+e^{-z}}</script>
+
+<p>对于给定的输入<span class="MathJax_Preview">z</span><script type="math/tex">z</script>，分类的两种结果的概率分别写为：</p>
+
+<div class="MathJax_Preview">P(t=1\mid z) = \sigma(z) = \frac{1}{1+e^{-z}}</div>
+<script type="math/tex; mode=display">P(t=1\mid z) = \sigma(z) = \frac{1}{1+e^{-z}}</script>
+
+<div class="MathJax_Preview">P(t=0\mid z) = 1 - \sigma(z) = \frac{e^{-z}}{1+e^{-z}}</div>
+<script type="math/tex; mode=display">P(t=0\mid z) = 1 - \sigma(z) = \frac{e^{-z}}{1+e^{-z}}</script>
+
+<p>注意这里的输入 <span class="MathJax_Preview">z</span><script type="math/tex">z</script> 其实就是概率比的对数：</p>
+
+<div class="MathJax_Preview">log \frac{P(t=1\mid z)}{P(t=0\mid z)} = log \frac{\frac{1}{1+e^{-z}}}{\frac{e^{-z}}{1+e^{-z}}} = log \frac{1}{e^{-z}} = log(1) - log(e^{-z}) = z</div>
+<script type="math/tex; mode=display">log \frac{P(t=1\mid z)}{P(t=0\mid z)} = log \frac{\frac{1}{1+e^{-z}}}{\frac{e^{-z}}{1+e^{-z}}} = log \frac{1}{e^{-z}} = log(1) - log(e^{-z}) = z</script>
+
+<p>这意味着 对数概率比(log odds ratio): <span class="MathJax_Preview">log(P(t=1\mid z)/P(t=0\mid z))</span><script type="math/tex">log(P(t=1\mid z)/P(t=0\mid z))</script> 随着<span class="MathJax_Preview">z</span><script type="math/tex">z</script>是线性变化的。那么如果说神经网络中 <span class="MathJax_Preview">z = x * w</span><script type="math/tex">z = x * w</script>，那么对数概率比随着参数 w 和输入样本 x 线性变化。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">logistic</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">logistic</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="s">'b-'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'$z$'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'$</span><span class="err">\</span><span class="s">sigma(z)$'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'logistic function'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p><img src="/public/img/nn2/output_5_0.png" alt="png" /></p>
+
+<h3 id="section-2">逻辑函数的导数</h3>
+
+<p>神经网络中经常使用基于梯度的优化技术，所以有必要计算一下输出 <span class="MathJax_Preview">y</span><script type="math/tex">y</script> 关于输入 <span class="MathJax_Preview">x</span><script type="math/tex">x</script> 的导数。</p>
+
+<div class="MathJax_Preview">\frac{\partial y}{\partial z} = \frac{\partial \sigma(z)}{\partial z} = \frac{\partial \frac{1}{1+e^{-z}}}{\partial z} = \frac{-1}{(1+e^{-z})^2} *e^{-z}*-1 = \frac{1}{1+e^{-z}} \frac{e^{-z}}{1+e^{-z}} = y(1-y)</div>
+<script type="math/tex; mode=display">\frac{\partial y}{\partial z} = \frac{\partial \sigma(z)}{\partial z} = \frac{\partial \frac{1}{1+e^{-z}}}{\partial z} = \frac{-1}{(1+e^{-z})^2} *e^{-z}*-1 = \frac{1}{1+e^{-z}} \frac{e^{-z}}{1+e^{-z}} = y(1-y)</script>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">logistic_derivative</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">logistic</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">logistic</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">logistic_derivative</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="s">'r-'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'$z$'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'$</span><span class="se">\\</span><span class="s">frac{</span><span class="se">\\</span><span class="s">partial </span><span class="se">\\</span><span class="s">sigma(z)}{</span><span class="se">\\</span><span class="s">partial z}$'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'derivative of the logistic function'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p><img src="/public/img/nn2/output_8_0.png" alt="png" /></p>
+
+<h3 id="section-3">逻辑函数的 交叉熵成本函数</h3>
+
+<p>回顾一下逻辑函数 <span class="MathJax_Preview">y = \sigma (z)</span><script type="math/tex">y = \sigma (z)</script>，输入<span class="MathJax_Preview">z</span><script type="math/tex">z</script>属于一类(t=1)的概率为<span class="MathJax_Preview">y</span><script type="math/tex">y</script>，属于另一类(t=0)的概率为 <span class="MathJax_Preview">1-y</span><script type="math/tex">1-y</script>。我们记为：<span class="MathJax_Preview">P(t=1\mid z) = \sigma(z) = y</span><script type="math/tex">P(t=1\mid z) = \sigma(z) = y</script></p>
+
+<p>在这个情况下如何优化神经网络模型呢？</p>
+
+<p>在线性回归问题中，我们用的 <span class="MathJax_Preview">J(\theta)</span><script type="math/tex">J(\theta)</script> 在这里并不适用，因为它不再是一个凸函数，所以我们得重新去想一个误差函数来评价并优化我们的神经网络。</p>
+
+<p>理想状态下，当<span class="MathJax_Preview">y=h_\theta</span><script type="math/tex">y=h_\theta</script>时，误差为零；<span class="MathJax_Preview">y+h_\theta = 1</span><script type="math/tex">y+h_\theta = 1</script>时，误差为正无穷。Andrew Ng 讲到直接采用<span class="MathJax_Preview">-log(h_\theta)</span><script type="math/tex">-log(h_\theta)</script>在<span class="MathJax_Preview">(0,1]</span><script type="math/tex">(0,1]</script>上的性质来达到这一目的，但是正面推导采用了极大似然估计(MLE)他跳过没讲。这里我们讲一下具体的推导。</p>
+
+<p>对于每一个输入的样本，给定的一系列参数<span class="MathJax_Preview">\theta</span><script type="math/tex">\theta</script>可以准确预测出正确的类，这样的事件是有一定的似然(likelihood)，我们要做的就是对这个似然求极大。对于每个样本<span class="MathJax_Preview">i</span><script type="math/tex">i</script>，参数<span class="MathJax_Preview">\theta</span><script type="math/tex">\theta</script>可以被转换成逻辑函数的输入 <span class="MathJax_Preview">z_i</span><script type="math/tex">z_i</script>。极大似然可以写成：</p>
+
+<div class="MathJax_Preview">\arg\max_\theta \mathcal{L}(\theta \mid t,z) = \arg\max_\theta \prod_{i=1}^{n} \mathcal{L}(\theta \mid t_i,z_i)</div>
+<script type="math/tex; mode=display">\arg\max_\theta \mathcal{L}(\theta \mid t,z) = \arg\max_\theta \prod_{i=1}^{n} \mathcal{L}(\theta \mid t_i,z_i)</script>
+
+<p>似然 <span class="MathJax_Preview">\mathcal{L}(\theta \mid t,z)</span><script type="math/tex">\mathcal{L}(\theta \mid t,z)</script> 可以被重新写成联合概率的形式 <span class="MathJax_Preview">P(t,z \mid \theta)</span><script type="math/tex">P(t,z \mid \theta)</script>。由条件概率的定义 <span class="MathJax_Preview">P(A,B) = P(A \mid B) * P(B)</span><script type="math/tex">P(A,B) = P(A \mid B) * P(B)</script>，有：</p>
+
+<div class="MathJax_Preview">P(t,z \mid \theta) = P(t \mid z,\theta)P(z \mid \theta)</div>
+<script type="math/tex; mode=display">P(t,z \mid \theta) = P(t \mid z,\theta)P(z \mid \theta)</script>
+
+<p>我们对<span class="MathJax_Preview">z</span><script type="math/tex">z</script>的概率不感兴趣，所以我们可以写成：</p>
+
+<div class="MathJax_Preview">\mathcal{L}(\theta\mid t,z) = P(t \mid z,\theta) = \prod_{i=1}^{n} P(t_i \mid z_i,\theta)</div>
+<script type="math/tex; mode=display">\mathcal{L}(\theta\mid t,z) = P(t \mid z,\theta) = \prod_{i=1}^{n} P(t_i \mid z_i,\theta)</script>
+
+<p>由于 <span class="MathJax_Preview">t_i</span><script type="math/tex">t_i</script> 是伯努利变量【伯努利分布 = 0-1分布 = 两点分布】，且对于给定的<span class="MathJax_Preview">\theta</span><script type="math/tex">\theta</script>， <span class="MathJax_Preview">P(t \mid z) = y</span><script type="math/tex">P(t \mid z) = y</script>， 所以我们可以重写：</p>
+
+<div class="MathJax_Preview">P(t\mid z) = \prod_{i=1}^{n} P(t_i=1 \mid z_i)^{t_i} * (1 - P(t_i=1 \mid z_i))^{1-t_i} = \prod_{i=1}^{n} y_i^{t_i} * (1 - y_i)^{1-t_i}</div>
+<script type="math/tex; mode=display">P(t\mid z) = \prod_{i=1}^{n} P(t_i=1 \mid z_i)^{t_i} * (1 - P(t_i=1 \mid z_i))^{1-t_i} = \prod_{i=1}^{n} y_i^{t_i} * (1 - y_i)^{1-t_i}</script>
+
+<p>因为逻辑函数是一个单调递增函数，所以我们可以优化 对数-似然函数 <span class="MathJax_Preview">\arg\max_\theta \log \mathcal{L}(\theta \mid t,z)</span><script type="math/tex">\arg\max_\theta \log \mathcal{L}(\theta \mid t,z)</script>。这个最大值和正常的似然函数最大值相同。</p>
+
+<div class="MathJax_Preview">log \mathcal{L}(\theta\mid t,z) = log \prod_{i=1}^{n} y_i^{t_i} * (1 - y_i)^{1-t_i} = \sum_{i=1}^{n} t_i log(y_i) + (1-t_i) log(1 - y_i)</div>
+<script type="math/tex; mode=display">log \mathcal{L}(\theta\mid t,z) = log \prod_{i=1}^{n} y_i^{t_i} * (1 - y_i)^{1-t_i} = \sum_{i=1}^{n} t_i log(y_i) + (1-t_i) log(1 - y_i)</script>
+
+<p>显然这个函数是负值。要想求最大似然，就得求函数的负值的最小值。</p>
+
+<p>误差函数 <span class="MathJax_Preview">\xi(t,y)</span><script type="math/tex">\xi(t,y)</script>被称为 交叉熵误差函数（对数损失）:</p>
+
+<div class="MathJax_Preview">\xi(t,y) = - log \mathcal{L}(\theta\mid t,z) = - \sum_{i=1}^{n} \left[ t_i log(y_i) + (1-t_i)log(1-y_i) \right] = - \sum_{i=1}^{n} \left[ t_i log(\sigma(z) + (1-t_i)log(1-\sigma(z)) \right]</div>
+<script type="math/tex; mode=display">\xi(t,y) = - log \mathcal{L}(\theta\mid t,z) = - \sum_{i=1}^{n} \left[ t_i log(y_i) + (1-t_i)log(1-y_i) \right] = - \sum_{i=1}^{n} \left[ t_i log(\sigma(z) + (1-t_i)log(1-\sigma(z)) \right]</script>
+
+<p>重写：</p>
+
+<div class="MathJax_Preview">\xi(t_i,y_i) =
+   \begin{cases}
+   -log(y_i) &amp; \text{if } t_i = 1 \\
+   -log(1-y_i) &amp; \text{if } t_i = 0
+  \end{cases}</div>
+<script type="math/tex; mode=display">% <![CDATA[
+\xi(t_i,y_i) =
+   \begin{cases}
+   -log(y_i) & \text{if } t_i = 1 \\
+   -log(1-y_i) & \text{if } t_i = 0
+  \end{cases} %]]></script>
+
+<p>这样，当 t=1 而 y=0 时，误差趋近于正无穷；y=1 时误差趋近于0。</p>
+
+<p>鉴于<span class="MathJax_Preview">t</span><script type="math/tex">t</script>取值非0即1，我们可以重写函数：</p>
+
+<div class="MathJax_Preview">\xi(t,y) = -t * log(y) - (1-t) * log(1-y)</div>
+<script type="math/tex; mode=display">\xi(t,y) = -t * log(y) - (1-t) * log(1-y)</script>
+
+<p>n个样本的和加起来，则有：</p>
+
+<div class="MathJax_Preview">\xi(t,y) = - \sum_{i=1}^{n} \left[ t_i log(y_i) + (1-t_i)log(1-y_i) \right]</div>
+<script type="math/tex; mode=display">\xi(t,y) = - \sum_{i=1}^{n} \left[ t_i log(y_i) + (1-t_i)log(1-y_i) \right]</script>
+
+<h3 id="section-4">逻辑函数的交叉熵成本函数的导数</h3>
+
+<div class="MathJax_Preview">\frac{\partial \xi}{\partial y} = \frac{\partial (-t * log(y) - (1-t)* log(1-y))}{\partial y} = \frac{\partial (-t * log(y))}{\partial y} +  \frac{\partial (- (1-t)*log(1-y))}{\partial y} = -\frac{t}{y} + \frac{1-t}{1-y} = \frac{y-t}{y(1-y)}</div>
+<script type="math/tex; mode=display">\frac{\partial \xi}{\partial y} = \frac{\partial (-t * log(y) - (1-t)* log(1-y))}{\partial y} = \frac{\partial (-t * log(y))}{\partial y} +  \frac{\partial (- (1-t)*log(1-y))}{\partial y} = -\frac{t}{y} + \frac{1-t}{1-y} = \frac{y-t}{y(1-y)}</script>
+
+<div class="MathJax_Preview">\frac{\partial \xi}{\partial z} = \frac{\partial y}{\partial z} \frac{\partial \xi}{\partial y} = y (1-y) \frac{y-t}{y(1-y)} = y-t</div>
+<script type="math/tex; mode=display">\frac{\partial \xi}{\partial z} = \frac{\partial y}{\partial z} \frac{\partial \xi}{\partial y} = y (1-y) \frac{y-t}{y(1-y)} = y-t</script>
+
+</article>
+
+
+<aside class="author">
+  <h2 class="aside-title">About</h2>
+
+  
+  <img class="me" src="/public/img/profile.jpg" alt="Puxuan Yu"/>
+  
+
+  <p>Software Engineering @ WuhanU 🇨🇳 , ISTJ.</p>
+
+</aside>
+
+
+<aside class="related">
+  <h2 class="aside-title">Related Posts</h2>
+  <ul class="related-posts">
+    
+    
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/12/07/image-segmention/">
+              <span>Efficient Graph-based Image Segmentation</span>
+              <small>12/07/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/11/11/intro-to-xgboost/">
+              <span>XGBoost详解</span>
+              <small>11/11/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/10/28/nnfml1/">
+              <span>机器学习中的神经网络-笔记(1)</span>
+              <small>10/28/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+    
+  </ul>
+</aside>
+
+
+<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key='/2016/07/11/neural-network-2' data-title="构建一个神经网络：逻辑分类函数" data-url='http://puxuan.coding.me//2016/07/11/neural-network-2/'></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"lucius0814"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+
+    </main>
+
+    
+
+
+
+
+
+<div   id="_backdrop" class="backdrop"></div>
+<aside id="_sidebar" class="sidebar" style="background-image:url('/public/img/code.jpg')">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1><a href="/">Puxuan</a></h1>
+      <p>10^14 synapses in a brain, and 10^9 seconds in a life.</p>
+
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/code/">Technique</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/travel/">Travel</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/music/">Music</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/other/">Misc</a>
+          </li>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+            <li>
+              <a class="sidebar-nav-item " href="/about/">About</a>
+            </li>
+            
+          
+        
+          
+        
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </nav>
+
+    <div class="sidebar-social">
+      
+        <a href="https://github.com/PxYu" target="_blank"><span class="icon-github"></span></a>
+
+      
+
+      
+        <a href="https://instagram.com/pxyuwhu" target="_blank"><span class="icon-instagram"></span></a>
+
+      
+
+      
+        <a href="https://twitter.com/pxyuwhu" target="_blank"><span class="icon-twitter-square"></span></a>
+
+      
+
+      
+        <a href="https://facebook.com/martin.yu.5249" target="_blank"><span class="icon-facebook-square"></span></a>
+
+      
+
+      
+        <a href="https://weibo.com/u/3290896193" target="_blank"><span class="icon-weibo"></span></a>
+
+      
+
+
+    </div>
+  </div>
+</aside>
+
+
+    <script src="/public/js/hydejack.js" async></script>
+  </body>
+</html>

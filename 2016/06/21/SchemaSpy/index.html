@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79896728-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+  <title>初试 SchemaSpy &middot; Puxuan</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|PT+Serif:400,400italic,700,700italic" type="text/css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <!-- <link rel="stylesheet" href="/public/css/jekyll-github.css"> -->
+  <link rel="stylesheet" href="/public/css/styles/atelier-forest-light.css">
+  <script src="/public/css/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <!-- Insert to your webpage before the </head> -->
+  <script src="/public/audioplayerengine/jquery.js"></script>
+  <script src="/public/audioplayerengine/amazingaudioplayer.js"></script>
+  <link rel="stylesheet" type="text/css" href="/public/audioplayerengine/initaudioplayer-1.css">
+  <script src="/public/audioplayerengine/initaudioplayer-1.js"></script>
+  <!-- End of head section HTML codes -->
+
+  <link rel="canonical" href="http://puxuan.coding.me//2016/06/21/SchemaSpy/" />
+
+  
+
+  
+
+  
+
+  <style>
+    .content a,
+    .related-posts li a:hover {
+      color: #949667;
+    }
+    ::selection {
+      color: #fff;
+      background: #949667;
+    }
+    ::-moz-selection {
+      color: #fff;
+      background: #949667;
+    }
+  </style>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Puxuan" href="http://puxuan.coding.me//atom.xml">
+
+</head>
+
+
+  <body>
+    <a id="_menu" class="menu" href="#_sidebar">☰</a>
+
+    <main class="content container">
+      
+
+
+<article class="post">
+  <h1 class="post-title">初试 SchemaSpy</h1>
+  <div class="post-date">
+    <time datetime="2016-06-21T00:00:00+08:00">06/21/16</time>
+    <span>on <a href="/tag/code/">Technique</a></span>
+  </div>
+  
+  <hr/>
+  <p>SchemaSpy 是一个数据库图形化的工具，感觉还挺有意思。用它的初衷是画数据库实验的 ER-model 图。</p>
+
+<p>原网址: <a href="http://schemaspy.sourceforge.net/">SchemaSpy-没错，说的就是我</a></p>
+
+<p>我在这里使用的是 postgres 数据库，好在属于 SchemaSpy 的支持范围内。</p>
+
+<p>说实话，这网站做的有点难看，我找了半天没找到下载在哪里，最好拿浏览器查找一下 “download”。下好 schemaSpy_5.0.0.jar之后:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads
+</code></pre>
+</div>
+
+<p>会报错，看报错原因，是因为 postgres 需要指明端口。</p>
+
+<p>再来。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads -host localhost:5432
+</code></pre>
+</div>
+
+<p>继续报错。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Failed to query Graphviz version information
+  with: dot -V
+  java.io.IOException: Cannot run program "dot": error=2, No such file or directory
+Using database properties:
+  [schemaSpy_5.0.0.jar]/net/sourceforge/schemaspy/dbTypes/pgsql.properties
+java.lang.ClassNotFoundException: org.postgresql.Driver
+
+Failed to load driver 'org.postgresql.Driver'
+This entry does not point to a valid file/directory: [/whereever/postgresql-8.0-312.jdbc3.jar]
+
+Use the -dp option to specify the location of the database
+drivers for your database (usually in a .jar or .zip/.Z).
+</code></pre>
+</div>
+
+<p>原来还没有指定驱动路径。</p>
+
+<p>到  <a href="https://jdbc.postgresql.org/download.html#others">Postgres JDBC官网</a> 下一个驱动，在命令参数 -dp 后面加上驱动的地址。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads -host localhost:5432 -dp ~/Downloads/postgresql-9.4.1208.jre6.jar
+</code></pre>
+</div>
+
+<p>还是没有得到我们想要的结果，看看报错信息。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Using database properties:
+  [schemaSpy_5.0.0.jar]/net/sourceforge/schemaspy/dbTypes/pgsql.properties
+Gathering schema details...
+
+No tables or views were found in schema 'Lucius'.
+The schema does not exist in the database.
+Make sure that you specify a valid schema with the -s option and that
+  the user specified (Lucius) can read from the schema.
+Note that schema names are usually case sensitive.
+
+3 schemas exist in this database.
+Some of these "schemas" may be users or system schemas.
+
+information_schema pg_catalog public
+These schemas contain tables/views that user 'Lucius' can see:
+
+ information_schema pg_catalog public%
+</code></pre>
+</div>
+
+<h2 id="schema-">Schema 是什么？</h2>
+
+<hr />
+
+<p><img src="/public/img/schemaspy/q.jpg" alt="question" /></p>
+
+<blockquote>
+  <p>数据库中的Schema，为数据库对象的集合，一个用户一般对应一个schema。</p>
+
+  <p>官方定义如下：
+A schema is a collection of database objects (used by a user.).</p>
+
+  <p>schema objects are the logical structures that directly refer to the database’s data.</p>
+
+  <p>A user is a name defined in the database that can connect to and access objects.</p>
+
+  <p>schemas and users help database administrators manage database security.</p>
+
+  <p>从定义中我们可以看出schema为数据库对象的集合，为了区分各个集合，我们需要给这个集合起个名字，这些名字就是我们在企业管理器的方案下看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个schema，schema里面包含了各种对象如tables views sequences stored procedures synonyms indexes clusters and database links。</p>
+</blockquote>
+
+<p>所以这个点我们应该把 schema 改成 public，放在 -s 参数后面，而不是 user 默认的 Lucius。</p>
+
+<p>对了，需要画 ER—model diagram 的话需要安装 <strong>graphviz</strong>。
+mac 用户直接</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ brew install graphviz 
+</code></pre>
+</div>
+
+<p>现在配置就搞定了。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ java -jar schemaSpy_5.0.0.jar -t pgsql -db hos -u Lucius -o Downloads -host localhost:5432 -dp ~/Downloads/postgresql-9.4.1208.jre6.jar -s public
+Using database properties:
+  [schemaSpy_5.0.0.jar]/net/sourceforge/schemaspy/dbTypes/pgsql.properties
+Gathering schema details.....................(1sec)
+Writing/graphing summary............(0sec)
+Writing/diagramming details..................(2sec)
+Wrote relationship details of 18 tables/views to directory 'Downloads' in 4 seconds.
+View the results by opening Downloads/index.html
+</code></pre>
+</div>
+
+<p>看看效果。</p>
+
+<p><img src="/public/img/schemaspy/1.png" alt="colomn" /></p>
+
+<p><img src="/public/img/schemaspy/2.png" alt="table" /></p>
+
+<p><img src="/public/img/schemaspy/3.png" alt="ER" /></p>
+
+<p>还不错吧，更多的功能以后慢慢探索。</p>
+
+</article>
+
+
+<aside class="author">
+  <h2 class="aside-title">About</h2>
+
+  
+  <img class="me" src="/public/img/profile.jpg" alt="Puxuan Yu"/>
+  
+
+  <p>Software Engineering @ WuhanU 🇨🇳 , ISTJ.</p>
+
+</aside>
+
+
+<aside class="related">
+  <h2 class="aside-title">Related Posts</h2>
+  <ul class="related-posts">
+    
+    
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/12/07/image-segmention/">
+              <span>Efficient Graph-based Image Segmentation</span>
+              <small>12/07/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/11/11/intro-to-xgboost/">
+              <span>XGBoost详解</span>
+              <small>11/11/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+        <li>
+          <h4>
+            <a href="/2016/10/28/nnfml1/">
+              <span>机器学习中的神经网络-笔记(1)</span>
+              <small>10/28/16</small>
+            </a>
+          </h4>
+        </li>
+      
+    
+      
+      
+    
+  </ul>
+</aside>
+
+
+<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key='/2016/06/21/SchemaSpy' data-title="初试 SchemaSpy" data-url='http://puxuan.coding.me//2016/06/21/SchemaSpy/'></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"lucius0814"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+
+    </main>
+
+    
+
+
+
+
+
+<div   id="_backdrop" class="backdrop"></div>
+<aside id="_sidebar" class="sidebar" style="background-image:url('/public/img/code.jpg')">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1><a href="/">Puxuan</a></h1>
+      <p>10^14 synapses in a brain, and 10^9 seconds in a life.</p>
+
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/code/">Technique</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/travel/">Travel</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/music/">Music</a>
+          </li>
+        
+          
+          <li>
+            <a class="sidebar-nav-item " href="/tag/other/">Misc</a>
+          </li>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+            <li>
+              <a class="sidebar-nav-item " href="/about/">About</a>
+            </li>
+            
+          
+        
+          
+        
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      </ul>
+    </nav>
+
+    <div class="sidebar-social">
+      
+        <a href="https://github.com/PxYu" target="_blank"><span class="icon-github"></span></a>
+
+      
+
+      
+        <a href="https://instagram.com/pxyuwhu" target="_blank"><span class="icon-instagram"></span></a>
+
+      
+
+      
+        <a href="https://twitter.com/pxyuwhu" target="_blank"><span class="icon-twitter-square"></span></a>
+
+      
+
+      
+        <a href="https://facebook.com/martin.yu.5249" target="_blank"><span class="icon-facebook-square"></span></a>
+
+      
+
+      
+        <a href="https://weibo.com/u/3290896193" target="_blank"><span class="icon-weibo"></span></a>
+
+      
+
+
+    </div>
+  </div>
+</aside>
+
+
+    <script src="/public/js/hydejack.js" async></script>
+  </body>
+</html>
